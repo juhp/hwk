@@ -67,22 +67,22 @@ The `hwk` code above can be translated directly into a valid Haskell program.
 
 ```haskell
 ints = map (\l -> read l :: Int)
-hwk = \lines -> filter (0 >) $ ints lines
+hwk = filter (0 >) . ints
 
 main = do
     contents <- getContents
-    mapM_ putStrLn $ map (\r -> show r) $ hwk $ lines contents
+    mapM_ putStrLn $ map show $ hwk $ lines contents
 ```
 
-The second `hwk 'foldl (+) 0'` command will translate to.
+The second `hwk 'sum . ints'` command will translate to.
 
 ```haskell
 ints = map (\l -> read l :: Int)
-hwk = \lines -> foldl (+) 0 $ ints lines
+hwk = sum . ints
 
 main = do
     contents <- getContents
-    mapM_ putStrLn $ map (\r -> show r) $ hwk $ lines contents
+    mapM_ putStrLn $ map show $ hwk $ lines contents
 ```
 
 ## Alternatives

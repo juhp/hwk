@@ -21,7 +21,7 @@ main =
 
 runExpr :: Bool -> Maybe FilePath -> String -> IO ()
 runExpr dbg mfile stmt = do
-  functions <- do
+  functions <-
     case mfile of
       Nothing -> do
         cfg <- getAppUserDataDirectory "hwk.hs"
