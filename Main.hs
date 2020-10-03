@@ -32,7 +32,13 @@ runExpr _all mfile stmt {-files-} = do
     runHint :: [FilePath] -> [String] -> Interpreter ()
     runHint mods input = do
       loadModules mods
-      setImports ["Prelude", "Data.List", "Data.Char", "Hwk"]
+      setHwkImports ["Prelude"]
+      imports <- do
+        haveModules <- typeChecks "userModules"
+        if haveModules
+          then interpret "userModules" infer
+          else return ["Prelude", "Data.List"]
+      setHwkImports imports
       -- -- Not sure which is better: typechecking manually or polymorph string
       -- etypchk <- typeChecksWithDetails stmt
       -- case etypchk of
@@ -47,6 +53,9 @@ runExpr _all mfile stmt {-files-} = do
           else return ""
       fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
       liftIO $ mapM_ putStrLn (fn input)
+
+    -- FIXME use Set
+    setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
 
     -- checkFileExists :: FilePath -> IO ()
     -- checkFileExists file = do

@@ -4,6 +4,11 @@ module Hwk where
 
 import Data.List (intercalate)
 
+-- | modules to be imported into hint
+-- these modules must be globally installed
+userModules :: [String]
+userModules = ["Prelude", "Data.List", "Data.Char"]
+
 -- this string is used by hwk
 -- | Determines the types of functions hwk can interpret
 -- "toList" allows some simple polymorphism
