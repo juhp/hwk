@@ -2,14 +2,13 @@
 
 > :warning: Please use **[Hawk](https://github.com/gelisam/hawk)**.
   While **hwk** is a hacky MVP to test how well Haskell works as text processing language, **Hawk** is a more mature tool. This repository is no longer maintained by Lukas Martinelli.
-  
+
 <img align="right" alt="hwk" src="hwk.png" />
 
 **hwk** tries to demonstrate how a modern Haskell based stream manipulation tool could look like.
 It is similar to tools like **awk** or **sed**.
 `hwk` allows compact command sequences that operate on a list of strings. Because Haskell is lazy and has a powerful arsenal of functions, there is no need to invent another DSL and hopefully
-push people into using functional goodness. `hwk` also provides a method to store small functions for
-reuse in environment variables.
+push people into using functional goodness.
 
 ## Example
 
@@ -17,23 +16,19 @@ reuse in environment variables.
 # prepend a string to each line
 seq 1 10 | hwk 'map ("number " ++)'
 
-# load the negative function into the current environment
-eval $(hwk env negative '(0 >)')
-
 # sum all negative numbers
 # the ints function transforms a list of strings into a list of ints
 seq -100 100 \
-  | hwk '\lines -> filter negative $ ints lines' \
-  | hwk '\lines -> sum $ ints lines'
+  | hwk 'filter (0>) . ints' \
+  | hwk 'sum . ints'
 
 # get first two columns of tsv file
 # `cabal install split` to use the library for splitting lists
 cat data.tsv |
-  | hwk '\lines -> map (take 2) $ map (splitOn "\t") lines'
+  | hwk 'map (take 2 . splitOn "\t")'
 ```
 
 The argument passed to `hwk` must be a valid Haskell statement. It should always return a function that takes a list of strings and returns either a new list or a single element.
-The `hwk env` command loads the statement into the environment with the specified function name for later reuse.
 
 ## Install
 
@@ -53,7 +48,6 @@ cabal install
 ## What does `hwk` do?
 
 - `hwk` will generate code and execute it under `runhaskell`.
-- `hwk` will try to lookup functions in the passed environment variables.
 - `hwk` tries to convert the different result types into a list of strings `[String]`.
 - `hwk` provides additional functions that help with converting streams.
 
