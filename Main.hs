@@ -12,11 +12,11 @@ main :: IO ()
 main =
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-  runExpr <$> switchWith 'a' "" "Output Haskell" <*> optional (strOptionWith 'f' "file" "FILE" "User function include file") <*> strArg "FUNCTION" <*> many (strArg "FILE...")
+  runExpr <$> switchWith 'a' "" "Output Haskell" <*> optional (strOptionWith 'f' "file" "FILE" "User function include file") <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
 
-runExpr :: Bool -> Maybe FilePath -> String -> [FilePath] -> IO ()
-runExpr _all mfile stmt files = do
-  mapM_ checkFileExists files
+runExpr :: Bool -> Maybe FilePath -> String -> {-[FilePath] ->-} IO ()
+runExpr _all mfile stmt {-files-} = do
+  --mapM_ checkFileExists files
   input <- lines <$> getContents
   usercfg <- getAppUserDataDirectory "hwk.hs"
   unlessM (doesFileExist usercfg) $ do
@@ -48,10 +48,10 @@ runExpr _all mfile stmt files = do
       fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
       liftIO $ mapM_ putStrLn (fn input)
 
-    checkFileExists :: FilePath -> IO ()
-    checkFileExists file = do
-      unlessM (doesFileExist file) $
-        error' $ "file not found: " ++ file
+    -- checkFileExists :: FilePath -> IO ()
+    -- checkFileExists file = do
+    --   unlessM (doesFileExist file) $
+    --     error' $ "file not found: " ++ file
 
     errorString :: InterpreterError -> String
     errorString (WontCompile es) = L.intercalate "\n" (header : map unbox es)
