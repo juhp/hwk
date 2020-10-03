@@ -47,15 +47,14 @@ toInt = unlines [ "int str = read str :: Integer"
 
 libraryFunctions = [toInt, toList]
 genFunction fname stmt = fname ++ " = " ++ stmt
-genHwkFunction fname stmt = genFunction fname stmt
-genModule functions stmt = unlines $ [extensions, imports, genHwkFunction "hwk" stmt, genMain "hwk"] ++
+genModule functions stmt = unlines $ [extensions, imports, genFunction "hwk" stmt, genMain "hwk"] ++
                            functions ++  libraryFunctions
 
 exit    = exitSuccess
 die     = exitWith (ExitFailure 1)
-envFunctions envs = [envGenFunction e | e <- envs, envFunctionPrefix `isPrefixOf` (fst e)]
+envFunctions envs = [envGenFunction e | e <- envs, envFunctionPrefix `isPrefixOf` fst e]
 envGenFunction (fname, stmt) = genFunction (drop (length envFunctionPrefix) fname) stmt
-envUnsetFunctions envs = ["unset " ++ (fst e) | e <- envs, envFunctionPrefix `isPrefixOf` (fst e)]
+envUnsetFunctions envs = ["unset " ++ fst e | e <- envs, envFunctionPrefix `isPrefixOf` fst e]
 envFunctionPrefix = "HWK_FUNCTION_"
 version = putStrLn "hwk - Haskell based AWK replacement v0.1"
 usage   = putStr $ unlines [ "Usage:"
