@@ -10,7 +10,7 @@ maintainer:          Jens Petersen <juhpetersen@gmail.com>
 copyright:           2016-2017 Lukas Martinelli
 category:            Development
 build-type:          Simple
-data-files:          data/hwk.hs
+data-files:          data/Hwk.hs
 extra-doc-files:     README.md
                      ChangeLog.md
 cabal-version:       1.18

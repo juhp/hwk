@@ -1,10 +1,7 @@
-import Control.Monad.Extra
 import qualified Data.List as L
-import Data.Maybe
 import Language.Haskell.Interpreter
 import SimpleCmdArgs
 import System.Directory
-import System.FilePath
 
 import Paths_hwk (getDataDir, version)
 
@@ -12,26 +9,24 @@ main :: IO ()
 main =
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-  runExpr <$> switchWith 'a' "" "Output Haskell" <*> optional (strOptionWith 'f' "file" "FILE" "User function include file") <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+  runExpr <$> switchWith 'a' "" "Output Haskell" <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
 
-runExpr :: Bool -> Maybe FilePath -> String -> {-[FilePath] ->-} IO ()
-runExpr _all mfile stmt {-files-} = do
+runExpr :: Bool -> String -> {-[FilePath] ->-} IO ()
+runExpr _all stmt {-files-} = do
   --mapM_ checkFileExists files
   input <- lines <$> getContents
-  usercfg <- getAppUserDataDirectory "hwk.hs"
-  unlessM (doesFileExist usercfg) $ do
-    datadir <- getDataDir
-    copyFile (datadir </> "hwk.hs") usercfg
-  -- FIXME check file exists
-  let mods = usercfg : maybeToList mfile
-  r <- runInterpreter (runHint mods input)
+  usercfg <- getXdgDirectory XdgConfig "hwk"
+  datadir <- getDataDir
+--    copyFile (datadir </> "hwk.hs") usercfg
+  r <- runInterpreter (runHint [usercfg, datadir] input)
   case r of
     Left err -> putStrLn $ errorString err
     Right () -> return ()
   where
     runHint :: [FilePath] -> [String] -> Interpreter ()
-    runHint mods input = do
-      loadModules mods
+    runHint cfgdirs input = do
+      set [searchPath := cfgdirs]
+      loadModules ["Hwk"]
       setHwkImports ["Prelude"]
       imports <- do
         haveModules <- typeChecks "userModules"
