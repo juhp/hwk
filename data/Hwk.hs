@@ -25,15 +25,15 @@ instance ToList [String] where
   toList = id
 instance ToList [[String]] where
   toList = map (intercalate "\t")
-instance ToList Integer where
+instance ToList Int where
   toList x = [show x]
-instance ToList [Integer] where
+instance ToList [Int] where
   toList lst = map show lst
 
 -- below here all user defined ------
 
-int :: String -> Integer
-int str = read str :: Integer
+int :: String -> Int
+int str = read str :: Int
 
-ints :: [String] -> [Integer]
+ints :: [String] -> [Int]
 ints = map int
