@@ -9,12 +9,12 @@ main :: IO ()
 main =
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-  runExpr <$> switchWith 'a' "" "Output Haskell" <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+  runExpr <$> switchWith 'a' "all" "All input as a single string" <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
 
 runExpr :: Bool -> String -> {-[FilePath] ->-} IO ()
-runExpr _all stmt {-files-} = do
+runExpr allinput stmt {-files-} = do
   --mapM_ checkFileExists files
-  input <- lines <$> getContents
+  input <- getContents
   usercfg <- getXdgDirectory XdgConfig "hwk"
   datadir <- getDataDir
 --    copyFile (datadir </> "hwk.hs") usercfg
@@ -23,7 +23,7 @@ runExpr _all stmt {-files-} = do
     Left err -> putStrLn $ errorString err
     Right () -> return ()
   where
-    runHint :: [FilePath] -> [String] -> Interpreter ()
+    runHint :: [FilePath] -> String -> Interpreter ()
     runHint cfgdirs input = do
       set [searchPath := cfgdirs]
       loadModules ["Hwk"]
@@ -46,8 +46,13 @@ runExpr _all stmt {-files-} = do
           s <- interpret "polymorph" infer
           return $ if null s then "" else s ++ " . "
           else return ""
-      fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
-      liftIO $ mapM_ putStrLn (fn input)
+      if allinput
+        then do
+        fn <- interpret (poly ++ stmt) (as :: String -> [String])
+        liftIO $ mapM_ putStrLn (fn input)
+        else do
+        fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
+        liftIO $ mapM_ putStrLn (fn (lines input))
 
     -- FIXME use Set
     setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
