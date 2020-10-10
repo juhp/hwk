@@ -13,37 +13,43 @@ It is similar to tools like **awk** or **sed**.
 
 Prepend a string to each line:
 ```bash
-$ seq 1 10 | hwk 'map ("number " ++)'
+$ seq 1 3 | hwk 'map (++ ".txt")'
+1.txt
+2.txt
+3.txt
 ```
 
-Sum all negative numbers
-```
-seq -100 100 | hwk 'sum . filter (< 0) . ints'
+Sum all negative numbers:
+```bash
+$ seq -100 100 | hwk 'sum . filter (< 0) . ints'
+-5050
 ```
 The ints function transforms a list of strings into a list of ints
 
-Get the first two columns of a tsv file
+Extract data from a file:
+```bash
+$ cat /etc/passwd | hwk 'take 3 . map (filter (/= "x") . take 3 . splitOn ":")'
+root	0
+bin	1
+daemon	2
 ```
-cat data.tsv | hwk 'map (take 2 . splitOn "\t")'
-```
-(import a module defining splitOn from the extra or split library).
+(a module defining `splitOn` from the extra or split library needs to be added to the Hwk.hs config file).
 
 The argument passed to `hwk` must be a valid Haskell function: a function that takes a list of strings and returns a new list or a single value.
 
 ## Configuration
-It uses a configuration module Hwk which provides the context for the hint evaluation of the supplied function.
+It uses a configuration module `Hwk` which provides the context for the hint evaluation of the supplied function.
 
-It searches for the Hwk.hs in `~/.config/hwk`, then the package's installed datadir.
-You can copy the installed Hwk.hs or source data/Hwk.hs to ~/.config/hwk to configure hwk.
+It searches for `Hwk.hs` in `~/.config/hwk`, then the package's installed data directory.
 
-The default configuration [Hwk module](data/Hwk.hs) imports
-the `Prelude`, `Data.List`, and `Data.Char` modules by default to hint.
+The default configuration [Hwk module](data/Hwk.hs) just sets
+the `Prelude`, `Data.List`, and `Data.Char` modules to be imported by default into the hint interpreter.
 
-If you want to use other modules or define your own functions you can copy `data/Hwk.hs` to `~/.config/hwk/Hwk.hs`.
+If you want to use other modules or define your own functions, you can copy the installed `Hwk.hs` or source `data/Hwk.hs` file to `~/.config/hwk/` to configure hwk.
 
 ## Install
-Either use `install.sh`, or install by cabal-install or stack
-as described below.
+Either use the `install.sh` script, or install by cabal-install or stack
+as described below:
 
 ### Install script from source tree or git
 Use `stack unpack hwk` or `git clone https://github.com/juhp/hwk`.
@@ -64,7 +70,7 @@ If you install with a recent cabal the Hwk.hs config module probably lives somew
 
 ### stack
 Installing by stack is better if you do not have a system ghc
-and/or system/global Haskell libraries installed.
+and/or global system Haskell libraries installed.
 
 Alternatively to install by hand: run `stack install`,
 and then run it with `stack exec hwk ...` using the same resolver,
@@ -89,13 +95,13 @@ By default the following instances of the `ToList` class are defined:
 
 ## Contribute
 
-Open issue and pull requests at https://github.com/juhp/hwk
-to report problems and make suggestions and contributions.
+Open an issue or pull request at https://github.com/juhp/hwk
+to report problems or make suggestions and contributions.
 
 ## Related/alternative projects
 
 - https://github.com/gelisam/hawk
+- https://github.com/bawolk/hsp
 - https://code.google.com/p/pyp/
 - https://en.wikipedia.org/wiki/AWK
 - https://en.wikipedia.org/wiki/Sed
-- https://github.com/bawolk/hsp
