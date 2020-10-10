@@ -1,19 +1,20 @@
 #!/bin/sh
 
+set -e
+
 stack install
 
 RESOLVER=$(grep -i "resolver:" stack.yaml | sed -e "s/.*: *//")
 
 CFGDIR=$HOME/.config/hwk
-CFGFILE=$CFGDIR/Hwk.hs
+mkdir -p $CFGDIR
 
-if [ -f "$CFGFILE" ]; then
-    mv $CFGFILE $CFGFILE.backup
-elif [ ! -d "$CFGDIR" ]; then
-    mkdir -p $CFGDIR
+if [ -f "$CFGDIR/Hwk.hs" ]; then
+    CFGHASH=$(cd $CFGDIR; md5sum Hwk.hs)
 fi
-
-cp data/Hwk.hs $CFGDIR
+if [ "$CFGHASH" != "$(cd data; md5sum Hwk.hs)" ]; then
+cp -p -v --backup=numbered data/Hwk.hs $CFGDIR/
+fi
 
 mv -f ~/.local/bin/hwk ~/.local/bin/hwk-bin
 
