@@ -7,16 +7,16 @@ see the [original README file](README.md.orig).
 
 **hwk** tries to demonstrate how a modern Haskell based stream manipulation tool could look like.
 It is similar to tools like **awk** or **sed**.
-`hwk` allows compact function sequences that operate on a list of strings. Because Haskell is lazy and has a powerful arsenal of functions, there is no need to invent another DSL and hopefully it encourages more people to think functionally.
+`hwk` allows concise composition of functions to operate on a list of strings. Because Haskell is lazy and has a powerful arsenal of functions, there is no need to invent another DSL and hopefully this encourages more people to think functionally.
 
 ## Example
 
 Prepend a string to each line:
 ```bash
-$ seq 1 3 | hwk 'map (++ ".txt")'
-1.txt
-2.txt
-3.txt
+$ seq 0 2 | hwk 'map ((++ ".txt") . show . (+100) . int)'
+100.txt
+101.txt
+102.txt
 ```
 
 Sum all negative numbers:
@@ -25,6 +25,14 @@ $ seq -100 100 | hwk 'sum . filter (< 0) . ints'
 -5050
 ```
 The ints function transforms a list of strings into a list of ints
+
+Factorials in your shell scripts!:
+```bash
+seq 10 12 | hwk 'let {fact 0 = 1; fact n = n * fact (n - 1)} in map (fact . int)'
+3628800
+39916800
+479001600
+```
 
 Extract data from a file:
 ```bash
