@@ -1,5 +1,5 @@
 name:                hwk
-version:             0.2
+version:             0.2.0
 synopsis:            A modern Haskell based AWK replacement
 description:         A simple Haskell-based replacement for awk/sed.
 homepage:            https://github.com/juhp/hwk
@@ -8,9 +8,11 @@ license-file:        LICENSE
 author:              Lukas Martinelli
 maintainer:          Jens Petersen <juhpetersen@gmail.com>
 copyright:           2016-2017 Lukas Martinelli
+                     2020 Jens Petersen
 category:            Development
 build-type:          Simple
 data-files:          data/Hwk.hs
+extra-source-files:  install.sh
 extra-doc-files:     README.md
                      ChangeLog.md
 cabal-version:       1.18
