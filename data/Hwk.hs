@@ -7,7 +7,7 @@ import Data.List (intercalate)
 -- | modules to be imported into hint
 -- these modules must be globally installed
 userModules :: [String]
-userModules = [ "Prelude", "Data.List", "Data.Char"
+userModules = [ "Prelude", "Data.List", "Data.Char", "Data.Bool"
               -- , "Data.List.Extra", "Data.Tuple.Extra"
               ]
 
@@ -15,8 +15,22 @@ userModules = [ "Prelude", "Data.List", "Data.Char"
 -- | Determines the types of functions hwk can interpret
 -- "toList" allows some simple polymorphism
 -- use "id" or "" to allow only functions of type: [String] -> [String]
-polymorph :: String
-polymorph = "toList"
+polyList, polyString :: String
+polyList = "toList"
+polyString = "toString"
+
+class ToString a where
+  toString :: a -> String
+instance ToString String where
+  toString x = x
+instance ToString [String] where
+  toString = unwords
+instance ToString [[String]] where
+  toString = intercalate "\t" . map unwords
+instance ToString Int where
+  toString x = show x
+instance ToString [Int] where
+  toString lst = unwords $ map show lst
 
 -- ToList allows handling functions of type: ToList a => [String] -> a
 class ToList a where

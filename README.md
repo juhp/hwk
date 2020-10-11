@@ -12,11 +12,12 @@ see the [original README file](README.md.orig).
 
 Change and append a string to each line:
 ```bash
-$ seq 0 2 | hwk 'map ((++ ".txt") . show . (+1) . int)'
+$ seq 0 2 | hwk --line '(++ ".txt") . show . (+1) . int'
 1.txt
 2.txt
 3.txt
 ```
+or without line-mode: `hwk 'map ((++ ".txt") . show . (+1) . int)'`.
 
 Sum all negative numbers:
 ```bash
@@ -27,7 +28,7 @@ The ints function transforms a list of strings into a list of ints
 
 Factorials in your shell scripts!:
 ```bash
-seq 10 12 | hwk 'let {fact 0 = 1; fact n = n * fact (n - 1)} in map (fact . int)'
+seq 10 12 | hwk --line 'let {fact 0 = 1; fact n = n * fact (n - 1)} in fact . int'
 3628800
 39916800
 479001600
@@ -35,14 +36,20 @@ seq 10 12 | hwk 'let {fact 0 = 1; fact n = n * fact (n - 1)} in map (fact . int)
 
 Extract data from a file:
 ```bash
-$ cat /etc/passwd | hwk 'take 3 . map (filter (/= "x") . take 3 . splitOn ":")'
-root	0
-bin	1
-daemon	2
+$ cat /etc/passwd | hwk --line 'reverse . filter (/= "x") . take 3 . splitOn ":"' | head -3
+0 root
+1 bin
+2 daemon
 ```
 (a module defining `splitOn` from the extra or split library needs to be added to the Hwk.hs config file).
 
 The argument passed to `hwk` must be a valid Haskell function: a function that takes a list of strings and returns a new list or a single value.
+
+Check where input contains a certain string:
+```
+$ cat /etc/passwd | hwk --all 'bool "no" "yes" . isInfixOf "1000"'
+yes
+```
 
 ## Configuration
 It uses a configuration module `Hwk` which provides the context for the hint evaluation of the supplied function.

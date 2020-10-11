@@ -1,3 +1,8 @@
+{-# LANGUAGE CPP #-}
+
+#if !MIN_VERSION_simple_cmd_args(0,1,3)
+import Control.Applicative ((<|>))
+#endif
 import qualified Data.List.Extra as L
 import Language.Haskell.Interpreter
 import SimpleCmdArgs
@@ -5,14 +10,23 @@ import System.Directory
 
 import Paths_hwk (getDataDir, version)
 
+data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode
+  deriving Eq
+
 main :: IO ()
 main =
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-  runExpr <$> switchWith 'a' "all" "All input as a single string" <*> switchWith 't' "type-check" "Print out the type of the given function" <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+  runExpr <$> modeOpt <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+  where
+    modeOpt :: Parser HwkMode
+    modeOpt =
+      flagWith' TypeMode 't' "type-check" "Print out the type of the given function" <|>
+      flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
+      flagWith DefaultMode LineMode 'l' "line" "Apply function to each line"
 
-runExpr :: Bool -> Bool -> String -> {-[FilePath] ->-} IO ()
-runExpr allinput checktype stmt {-files-} = do
+runExpr :: HwkMode -> String -> {-[FilePath] ->-} IO ()
+runExpr mode stmt {-files-} = do
   --mapM_ checkFileExists files
   input <- getContents
   usercfg <- getXdgDirectory XdgConfig "hwk"
@@ -34,25 +48,35 @@ runExpr allinput checktype stmt {-files-} = do
           then interpret "userModules" infer
           else return ["Prelude", "Data.List"]
       setHwkImports imports
-      if checktype then do
+      if mode == TypeMode then do
         etypchk <- typeChecksWithDetails stmt
         case etypchk of
           Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
           Right typ -> liftIO $ putStrLn (cleanupType typ)
         else do
-        poly <- do
-          havePoly <- typeChecks "polymorph"
-          if havePoly then do
-            s <- interpret "polymorph" infer
+        polyList <- do
+          havePolyList <- typeChecks "polyList"
+          if havePolyList then do
+            s <- interpret "polyList" infer
             return $ if null s then "" else s ++ " . "
             else return ""
-        if allinput
-          then do
-          fn <- interpret (poly ++ stmt) (as :: String -> [String])
-          liftIO $ mapM_ putStrLn (fn input)
-          else do
-          fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
-          liftIO $ mapM_ putStrLn (fn (lines input))
+        polyString <- do
+          havePolyString <- typeChecks "polyString"
+          if havePolyString then do
+            s <- interpret "polyString" infer
+            return $ if null s then "" else s ++ " . "
+            else return ""
+        case mode of
+          DefaultMode -> do
+            fn <- interpret (polyList ++ stmt) (as :: [String] -> [String])
+            liftIO $ mapM_ putStrLn (fn (lines input))
+          LineMode -> do
+            fn <- interpret (polyString ++ stmt) (as :: String -> String)
+            liftIO $ mapM_ (putStrLn . fn) (lines input)
+          WholeMode -> do
+            fn <- interpret (polyList ++ stmt) (as :: String -> [String])
+            liftIO $ mapM_ putStrLn (fn input)
+          TypeMode -> error "already handled earlier"
       where
         cleanupType :: String -> String
         cleanupType = L.replace "[Char]" "String"
