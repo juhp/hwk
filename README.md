@@ -10,12 +10,12 @@ see the [original README file](README.md.orig).
 
 ## Example
 
-Prepend a string to each line:
+Change and append a string to each line:
 ```bash
-$ seq 0 2 | hwk 'map ((++ ".txt") . show . (+100) . int)'
-100.txt
-101.txt
-102.txt
+$ seq 0 2 | hwk 'map ((++ ".txt") . show . (+1) . int)'
+1.txt
+2.txt
+3.txt
 ```
 
 Sum all negative numbers:
