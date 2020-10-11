@@ -1,8 +1,8 @@
 name:                hwk
-version:             0.2.0
-synopsis:            Simple Haskell based AWK replacement
+version:             0.2.1
+synopsis:            Simple Haskell based AWK-like tool
 description:
-            A simple Haskell-based replacement for awk/sed.
+            A simple Haskell-based alternative to awk/sed.
             It uses Hint to apply a function pass on the commandline
             to standard input and prints the result.
 homepage:            https://github.com/juhp/hwk
@@ -33,7 +33,6 @@ executable hwk
                        extra,
                        filepath,
                        hint,
-                       process,
                        simple-cmd-args >= 0.1.2
   default-language:    Haskell2010
   ghc-options:         -Wall
