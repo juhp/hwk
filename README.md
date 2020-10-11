@@ -52,14 +52,17 @@ yes
 ```
 
 ## Configuration
-It uses a configuration module `Hwk` which provides the context for the hint evaluation of the supplied function.
-
-It searches for `Hwk.hs` in `~/.config/hwk`, then the package's installed data directory.
+It uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function.
 
 The default configuration [Hwk module](data/Hwk.hs) just sets
 the `Prelude`, `Data.List`, and `Data.Char` modules to be imported by default into the hint interpreter.
 
-If you want to use other modules or define your own functions, you can copy the installed `Hwk.hs` or source `data/Hwk.hs` file to `~/.config/hwk/` to configure hwk.
+The first time hwk is run it sets up `~/.config/hwk/Hwk.hs`.
+
+You can add other modules to import or define your own functions in
+`~/.config/hwk/Hwk.hs`.
+
+After a hwk version update you may wish/have to update up your Hwk.hs file to take account of new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with version suffix.
 
 ## Install
 Either use the `install.sh` script, or install by cabal-install or stack
@@ -71,25 +74,20 @@ Use `stack unpack hwk` or `git clone https://github.com/juhp/hwk`.
 Then go to the source directory and run the `install.sh` script, which
 
 - first runs `stack install`
-- then moves the binary installed by `stack install` to `~/.local/bin/hwk-bin`, and sets up a wrapper script `~/.local/bin/hwk` which runs it.
-- and also copies the Hwk.hs configuration module to `~/.config/hwk/Hwk.hs` (backing up any existing file).
+- then moves the binary installed by `stack install` to `~/.local/lib/hwk`, and sets up a wrapper script `~/.local/bin/hwk` which runs it.
 
-You may wish to change the resolver in stack.yaml first, which is also use to determine the resolver used by the created `hwk` wrapper script.
+You may wish to change the resolver in stack.yaml first: it is also used to determine the resolver used by the created `hwk` wrapper script.
 
 ### cabal
 If you are on a Linux distro with a system installed ghc and Haskell libaries,
 you can install with `cabal install` to make use of them.
-
-If you install with a recent cabal the Hwk.hs config module probably lives somewhere like `~/.cabal/store/ghc-*/hwk-*/share/data/Hwk.hs`, or you can copy it from the source `data/Hwk.hs`.
 
 ### stack
 Installing by stack is better if you do not have a system ghc
 and/or global system Haskell libraries installed.
 
 Alternatively to install by hand: run `stack install`,
-and then run it with `stack exec hwk ...` using the same resolver,
-To customize hwk after a stack install it is probably easier just to copy
-the `data/Hwk.hs` source file.
+and then run it with `stack exec hwk ...` using the same resolver.
 
 ## How does `hwk` work?
 

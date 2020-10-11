@@ -3,10 +3,14 @@
 #if !MIN_VERSION_simple_cmd_args(0,1,3)
 import Control.Applicative ((<|>))
 #endif
+import Control.Monad.Extra
 import qualified Data.List.Extra as L
+import Data.Version (showVersion)
 import Language.Haskell.Interpreter
 import SimpleCmdArgs
 import System.Directory
+import System.FilePath
+import System.IO (hPutStrLn, stderr)
 
 import Paths_hwk (getDataDir, version)
 
@@ -29,17 +33,23 @@ runExpr :: HwkMode -> String -> {-[FilePath] ->-} IO ()
 runExpr mode stmt {-files-} = do
   --mapM_ checkFileExists files
   input <- getContents
-  usercfg <- getXdgDirectory XdgConfig "hwk"
+  userdir <- getXdgDirectory XdgConfig "hwk"
+  let usercfg = userdir </> "Hwk.hs"
   datadir <- getDataDir
---    copyFile (datadir </> "hwk.hs") usercfg
-  r <- runInterpreter (runHint [usercfg, datadir] input)
+  let versionCfg = usercfg ++ "-" ++ showVersion version
+  unlessM (doesFileExist versionCfg) $
+    copyFile (datadir </> "Hwk.hs") versionCfg
+  unlessM (doesFileExist usercfg) $ do
+    copyFile (datadir </> "Hwk.hs") usercfg
+    warn $ usercfg ++ " created"
+  r <- runInterpreter (runHint usercfg input)
   case r of
     Left err -> putStrLn $ errorString err
     Right () -> return ()
   where
-    runHint :: [FilePath] -> String -> Interpreter ()
-    runHint cfgdirs input = do
-      set [searchPath := cfgdirs]
+    runHint :: FilePath -> String -> Interpreter ()
+    runHint cfgdir input = do
+      set [searchPath := [cfgdir]]
       loadModules ["Hwk"]
       setHwkImports ["Prelude"]
       imports <- do
@@ -87,3 +97,6 @@ runExpr mode stmt {-files-} = do
     errorString (WontCompile es) =
       unlines $ "ERROR: Won't compile:" : map errMsg es
     errorString e = show e
+
+warn :: String -> IO ()
+warn = hPutStrLn stderr
