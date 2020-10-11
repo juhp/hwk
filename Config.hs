@@ -11,7 +11,7 @@ userModules = [ "Prelude", "Data.List", "Data.Char", "Data.Bool"
               -- , "Data.List.Extra", "Data.Tuple.Extra"
               ]
 
--- you any user hwk functions here:
+-- you can put user hwk functions here:
 
 
 int :: String -> Int

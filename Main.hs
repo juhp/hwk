@@ -38,11 +38,11 @@ runExpr mode stmt {-files-} = do
   datadir <- getDataDir
   let versionCfg = usercfg ++ "-" ++ showVersion version
   unlessM (doesFileExist versionCfg) $
-    copyFile (datadir </> "Hwk.hs") versionCfg
+    copyFile (datadir </> "Config.hs") versionCfg
   unlessM (doesFileExist usercfg) $ do
-    copyFile (datadir </> "Hwk.hs") usercfg
+    copyFile (datadir </> "Config.hs") usercfg
     warn $ usercfg ++ " created"
-  r <- runInterpreter (runHint usercfg input)
+  r <- runInterpreter (runHint userdir input)
   case r of
     Left err -> putStrLn $ errorString err
     Right () -> return ()

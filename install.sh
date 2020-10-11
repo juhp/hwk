@@ -14,7 +14,7 @@ RESOLVER=$(grep -i "resolver:" stack.yaml | sed -e "s/.*: *//")
 cat > $BINHWK <<EOF
 #!/bin/sh
 
-stack --resolver $RESOLVER exec $BINHWK-bin "\$@"
+stack --resolver $RESOLVER exec -- $LIBHWK "\$@"
 EOF
 
 chmod u+x $BINHWK
