@@ -1,4 +1,4 @@
-import qualified Data.List as L
+import qualified Data.List.Extra as L
 import Language.Haskell.Interpreter
 import SimpleCmdArgs
 import System.Directory
@@ -9,10 +9,10 @@ main :: IO ()
 main =
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-  runExpr <$> switchWith 'a' "all" "All input as a single string" <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+  runExpr <$> switchWith 'a' "all" "All input as a single string" <*> switchWith 't' "type-check" "Print out the type of the given function" <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
 
-runExpr :: Bool -> String -> {-[FilePath] ->-} IO ()
-runExpr allinput stmt {-files-} = do
+runExpr :: Bool -> Bool -> String -> {-[FilePath] ->-} IO ()
+runExpr allinput checktype stmt {-files-} = do
   --mapM_ checkFileExists files
   input <- getContents
   usercfg <- getXdgDirectory XdgConfig "hwk"
@@ -34,25 +34,28 @@ runExpr allinput stmt {-files-} = do
           then interpret "userModules" infer
           else return ["Prelude", "Data.List"]
       setHwkImports imports
-      -- -- Not sure which is better: typechecking manually or polymorph string
-      -- etypchk <- typeChecksWithDetails stmt
-      -- case etypchk of
-      --   Left err -> error' err
-      --   Right typ ->
-      --     case typ of
-      poly <- do
-        havePoly <- typeChecks "polymorph"
-        if havePoly then do
-          s <- interpret "polymorph" infer
-          return $ if null s then "" else s ++ " . "
-          else return ""
-      if allinput
-        then do
-        fn <- interpret (poly ++ stmt) (as :: String -> [String])
-        liftIO $ mapM_ putStrLn (fn input)
+      if checktype then do
+        etypchk <- typeChecksWithDetails stmt
+        case etypchk of
+          Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
+          Right typ -> liftIO $ putStrLn (cleanupType typ)
         else do
-        fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
-        liftIO $ mapM_ putStrLn (fn (lines input))
+        poly <- do
+          havePoly <- typeChecks "polymorph"
+          if havePoly then do
+            s <- interpret "polymorph" infer
+            return $ if null s then "" else s ++ " . "
+            else return ""
+        if allinput
+          then do
+          fn <- interpret (poly ++ stmt) (as :: String -> [String])
+          liftIO $ mapM_ putStrLn (fn input)
+          else do
+          fn <- interpret (poly ++ stmt) (as :: [String] -> [String])
+          liftIO $ mapM_ putStrLn (fn (lines input))
+      where
+        cleanupType :: String -> String
+        cleanupType = L.replace "[Char]" "String"
 
     -- FIXME use Set
     setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
