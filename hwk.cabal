@@ -29,7 +29,7 @@ executable hwk
   other-modules:       Paths_hwk
   autogen-modules:     Paths_hwk
   build-depends:       base <5,
-                       directory,
+                       directory >= 1.2.3.0,
                        extra,
                        filepath,
                        hint,
