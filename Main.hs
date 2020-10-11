@@ -49,10 +49,14 @@ runExpr mode stmt {-files-} = do
           else return ["Prelude", "Data.List"]
       setHwkImports imports
       if mode == TypeMode then do
+#if MIN_VERSION_hint(0,8,0)
         etypchk <- typeChecksWithDetails stmt
         case etypchk of
           Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
           Right typ -> liftIO $ putStrLn (cleanupType typ)
+#else
+        typeOf stmt >>= liftIO . putStrLn . cleanupType
+#endif
         else do
         polyList <- do
           havePolyList <- typeChecks "polyList"
