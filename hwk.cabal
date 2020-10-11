@@ -1,10 +1,10 @@
 name:                hwk
 version:             0.3
-synopsis:            Simple Haskell based AWK-like tool
+synopsis:            Simple Haskell-based awk-like tool
 description:
             A simple Haskell-based alternative to awk/sed.
-            It uses Hint to apply a function pass on the commandline
-            to standard input and prints the result.
+            It uses Hint to apply the function given on the commandline
+            to standard input and outputs the result.
 homepage:            https://github.com/juhp/hwk
 license:             MIT
 license-file:        LICENSE

@@ -52,10 +52,10 @@ yes
 ```
 
 ## Configuration
-It uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function.
+`hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function.
 
 The default configuration [Hwk module](data/Hwk.hs) just sets
-the `Prelude`, `Data.List`, and `Data.Char` modules to be imported by default into the hint interpreter.
+the `Prelude`, `Data.List`, and `Data.Char` modules to be imported into the hint interpreter.
 
 The first time hwk is run it sets up `~/.config/hwk/Hwk.hs`.
 
