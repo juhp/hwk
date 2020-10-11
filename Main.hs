@@ -58,18 +58,8 @@ runExpr mode stmt {-files-} = do
         typeOf stmt >>= liftIO . putStrLn . cleanupType
 #endif
         else do
-        polyList <- do
-          havePolyList <- typeChecks "polyList"
-          if havePolyList then do
-            s <- interpret "polyList" infer
-            return $ if null s then "" else s ++ " . "
-            else return ""
-        polyString <- do
-          havePolyString <- typeChecks "polyString"
-          if havePolyString then do
-            s <- interpret "polyString" infer
-            return $ if null s then "" else s ++ " . "
-            else return ""
+        let polyList = "toList . "
+            polyString = "toString . "
         case mode of
           DefaultMode -> do
             fn <- interpret (polyList ++ stmt) (as :: [String] -> [String])

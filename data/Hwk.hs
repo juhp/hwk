@@ -11,13 +11,6 @@ userModules = [ "Prelude", "Data.List", "Data.Char", "Data.Bool"
               -- , "Data.List.Extra", "Data.Tuple.Extra"
               ]
 
--- this string is used by hwk
--- | Determines the types of functions hwk can interpret
--- "toList" allows some simple polymorphism
--- use "id" or "" to allow only functions of type: [String] -> [String]
-polyList, polyString :: String
-polyList = "toList"
-polyString = "toString"
 
 class ToString a where
   toString :: a -> String
