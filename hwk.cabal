@@ -1,5 +1,5 @@
 name:                hwk
-version:             0.2.1
+version:             0.3
 synopsis:            Simple Haskell based AWK-like tool
 description:
             A simple Haskell-based alternative to awk/sed.
