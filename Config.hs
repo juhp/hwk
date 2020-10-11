@@ -9,6 +9,7 @@ import Data.List (intercalate)
 userModules :: [String]
 userModules = [ "Prelude", "Data.List", "Data.Char", "Data.Bool"
               -- , "Data.List.Extra", "Data.Tuple.Extra"
+              , "System.FilePath"
               ]
 
 -- you can put user hwk functions here:
