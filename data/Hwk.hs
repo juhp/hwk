@@ -5,13 +5,28 @@ module Hwk where
 import Data.List (intercalate)
 
 -- | modules to be imported into hint
--- these modules must be globally installed
+-- these modules must be from installed packages
 userModules :: [String]
 userModules = [ "Prelude", "Data.List", "Data.Char", "Data.Bool"
               -- , "Data.List.Extra", "Data.Tuple.Extra"
               ]
 
+-- you any user hwk functions here:
 
+
+int :: String -> Int
+int str = read str :: Int
+
+ints :: [String] -> [Int]
+ints = map int
+
+------ below here all required internal machinery ------
+
+-- | toString and toList are required by hwk
+-- They determine the types of functions hwk can interpret,
+-- allowing some simple polymorphism.
+
+-- ToString allows handling functions of type: ToString a => String -> a
 class ToString a where
   toString :: a -> String
 instance ToString String where
@@ -38,11 +53,3 @@ instance ToList Int where
   toList x = [show x]
 instance ToList [Int] where
   toList lst = map show lst
-
--- below here all user defined ------
-
-int :: String -> Int
-int str = read str :: Int
-
-ints :: [String] -> [Int]
-ints = map int
