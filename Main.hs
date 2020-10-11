@@ -84,8 +84,6 @@ runExpr mode stmt {-files-} = do
     --     error' $ "file not found: " ++ file
 
     errorString :: InterpreterError -> String
-    errorString (WontCompile es) = L.intercalate "\n" (header : map unbox es)
-      where
-        header = "ERROR: Won't compile:"
-        unbox (GhcError e) = e
+    errorString (WontCompile es) =
+      unlines $ "ERROR: Won't compile:" : map errMsg es
     errorString e = show e
