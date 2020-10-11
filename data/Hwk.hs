@@ -7,7 +7,9 @@ import Data.List (intercalate)
 -- | modules to be imported into hint
 -- these modules must be globally installed
 userModules :: [String]
-userModules = ["Prelude", "Data.List", "Data.Char"]
+userModules = [ "Prelude", "Data.List", "Data.Char"
+              -- , "Data.List.Extra", "Data.Tuple.Extra"
+              ]
 
 -- this string is used by hwk
 -- | Determines the types of functions hwk can interpret
