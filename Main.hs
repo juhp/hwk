@@ -50,8 +50,9 @@ runExpr mode stmt {-files-} = do
   where
     runHint :: FilePath -> String -> Interpreter ()
     runHint cfgdir input = do
-      set [searchPath := [cfgdir]]
+      set [searchPath := [cfgdir], languageExtensions := [TypeApplications]]
       loadModules ["Hwk"]
+      let setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
       setHwkImports ["Prelude"]
       imports <- do
         haveModules <- typeChecks "userModules"
@@ -59,57 +60,19 @@ runExpr mode stmt {-files-} = do
           then interpret "userModules" infer
           else return ["Prelude", "Data.List"]
       setHwkImports imports
-      let polyList = "toList . "
-          polyString = "toString . "
       case mode of
-        DefaultMode -> do
-          fn <- interpret (polyList ++ stmt) (as :: [String] -> [String])
-          liftIO $ mapM_ putStrLn (fn (lines input))
-        LineMode -> do
-          fn <- interpret (polyString ++ stmt) (as :: String -> String)
-          liftIO $ mapM_ (putStrLn . fn) (lines input)
-        WholeMode -> do
-          fn <- interpret (polyList ++ stmt) (as :: String -> [String])
-          liftIO $ mapM_ putStrLn (fn (removeTrailingNewline input))
-        TypeMode -> do
-#if MIN_VERSION_hint(0,8,0)
-          etypchk <- typeChecksWithDetails stmt
-          case etypchk of
-            Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
-            Right typ -> liftIO $ putStrLn (cleanupType typ)
-#else
-          typeOf stmt >>= liftIO . putStrLn . cleanupType
-#endif
-        EvalMode -> do
-          typ <- cleanupType <$> typeOf stmt
-          case typ of
-            "String" -> do
-              interpret stmt "a String" >>= liftIO . putStrLn
-            "[String]" -> do
-              interpret stmt ["a String"] >>= liftIO . mapM_ putStrLn
-            "[[String]]" -> do
-              interpret stmt [["a String"]] >>= liftIO . mapM_ (putStrLn . unwords)
-            "[Int]" -> do
-              interpret stmt [1 :: Int] >>= liftIO . mapM_ (putStrLn . show)
-            "[[Int]]" -> do
-              interpret stmt [[1 :: Int]] >>= liftIO . mapM_ (putStrLn . unwords . map show)
-            _ -> do
-              res <- eval stmt
-              -- FIXME option to display type
-              liftIO $ putStrLn $ res ++ " :: " ++ typ
+        DefaultMode -> mapInputList stmt (lines input)
+        LineMode -> mapEachLine stmt (lines input)
+        WholeMode -> applyToInput stmt (removeTrailingNewline input)
+        TypeMode -> typeOfExpr stmt
+        EvalMode -> evalExpr stmt
       where
-        cleanupType :: String -> String
-        cleanupType = L.replace "[Char]" "String"
-
         removeTrailingNewline :: String -> String
         removeTrailingNewline "" = ""
         removeTrailingNewline s =
           if last s == '\n'
           then init s
           else s
-
-    -- FIXME use Set
-    setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
 
     -- checkFileExists :: FilePath -> IO ()
     -- checkFileExists file = do
@@ -121,5 +84,126 @@ runExpr mode stmt {-files-} = do
       unlines $ "ERROR: Won't compile:" : map errMsg es
     errorString e = show e
 
+cleanupType :: String -> String
+cleanupType = L.replace "[Char]" "String"
+
+-- fn $ lines input
+mapInputList :: String -> [String] -> InterpreterT IO ()
+mapInputList stmt inputs = do
+  typ <- resultTypeOfApplied stmt "[String]"
+  case cleanupType typ of
+    "String" -> do
+      fn <- interpret stmt (as :: [String] -> String)
+      liftIO $ putStrLn (fn inputs)
+    "[String]" -> do
+      fn <- interpret stmt (as :: [String] -> [String])
+      liftIO $ mapM_ putStrLn (fn inputs)
+    "[[String]]" -> do
+      fn <- interpret stmt (as :: [String] -> [[String]])
+      liftIO $ mapM_ (putStrLn . unwords) (fn inputs)
+    "Int" -> do
+      fn <- interpret stmt (as :: [String] -> Int)
+      liftIO $ (putStrLn . show) (fn inputs)
+    "[Int]" -> do
+      fn <- interpret stmt (as :: [String] -> [Int])
+      liftIO $ mapM_ (putStrLn . show) (fn inputs)
+    "[[Int]]" -> do
+      fn <- interpret stmt (as :: [String] -> [[Int]])
+      liftIO $ mapM_ (putStrLn . unwords . map show) (fn inputs)
+    _ -> do
+      fn <- interpret stmt (as :: [String] -> [String])
+      liftIO $ mapM_ putStrLn (fn inputs)
+
+-- map fn $ lines input
+mapEachLine :: String -> [String] -> InterpreterT IO ()
+mapEachLine stmt inputs = do
+  typ <- resultTypeOfApplied stmt "String"
+  case cleanupType typ of
+    "String" -> do
+      fn <- interpret stmt (as :: String -> String)
+      liftIO $ mapM_ (putStrLn . fn) inputs
+    "[String]" -> do
+      fn <- interpret stmt (as :: String -> [String])
+      liftIO $ mapM_ (putStrLn . unwords . fn) inputs
+    "[[String]]" -> do
+      fn <- interpret stmt (as :: String -> [[String]])
+      liftIO $ mapM_ (putStrLn . L.intercalate "\t" . map unwords . fn) inputs
+    "Int" -> do
+      fn <- interpret stmt (as :: String -> Int)
+      liftIO $ mapM_ (putStrLn . show . fn) inputs
+    "[Int]" -> do
+      fn <- interpret stmt (as :: String -> [Int])
+      liftIO $ mapM_ (putStrLn . unwords . map show . fn) inputs
+    "[[Int]]" -> do
+      fn <- interpret stmt (as :: String -> [[Int]])
+      liftIO $ mapM_ (putStrLn . L.intercalate "\t" . map (unwords . map show) .fn) inputs
+    _ -> do
+      fn <- interpret stmt (as :: String -> String)
+      liftIO $ mapM_ putStrLn (map fn inputs)
+
+-- fn input
+applyToInput :: String -> String -> InterpreterT IO ()
+applyToInput stmt input = do
+  typ <- resultTypeOfApplied stmt "String"
+  case cleanupType typ of
+    "String" -> do
+      fn <- interpret stmt (as :: String -> String)
+      liftIO $ putStrLn (fn input)
+    "[String]" -> do
+      fn <- interpret stmt (as :: String -> [String])
+      liftIO $ mapM_ putStrLn (fn input)
+    "[[String]]" -> do
+      fn <- interpret stmt (as :: String -> [[String]])
+      liftIO $ mapM_ (putStrLn . unwords) (fn input)
+    "Int" -> do
+      fn <- interpret stmt (as :: String -> Int)
+      liftIO $ (putStrLn . show) (fn input)
+    "[Int]" -> do
+      fn <- interpret stmt (as :: String -> [Int])
+      liftIO $ mapM_ (putStrLn . show) (fn input)
+    "[[Int]]" -> do
+      fn <- interpret stmt (as :: String -> [[Int]])
+      liftIO $ mapM_ (putStrLn . unwords . map show) (fn input)
+    _ -> do
+      fn <- interpret stmt (as :: String -> [String])
+      liftIO $ mapM_ putStrLn (fn input)
+
+typeOfExpr :: String -> InterpreterT IO ()
+typeOfExpr stmt = do
+#if MIN_VERSION_hint(0,8,0)
+  etypchk <- typeChecksWithDetails stmt
+  case etypchk of
+    Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
+    Right typ -> liftIO $ putStrLn (cleanupType typ)
+#else
+  typeOf stmt >>= liftIO . putStrLn . cleanupType
+#endif
+
+evalExpr :: String -> InterpreterT IO ()
+evalExpr stmt = do
+  typ <- typeOf stmt
+  case cleanupType typ of
+    "String" -> do
+      interpret stmt "a String" >>= liftIO . putStrLn
+    "[String]" -> do
+      interpret stmt ["a String"] >>= liftIO . mapM_ putStrLn
+    "[[String]]" -> do
+      interpret stmt [["a String"]] >>= liftIO . mapM_ (putStrLn . unwords)
+    "[Int]" -> do
+      interpret stmt [1 :: Int] >>= liftIO . mapM_ (putStrLn . show)
+    "[[Int]]" -> do
+      interpret stmt [[1 :: Int]] >>= liftIO . mapM_ (putStrLn . unwords . map show)
+    _ -> do
+      if " -> " `L.isInfixOf` typ
+        then liftIO $ putStrLn typ
+        else do
+        res <- eval stmt
+        -- FIXME option to display type
+        liftIO $ putStrLn $ res ++ " :: " ++ typ
+
 warn :: String -> IO ()
 warn = hPutStrLn stderr
+
+resultTypeOfApplied :: MonadInterpreter m => String -> String -> m String
+resultTypeOfApplied expr typ =
+  L.dropPrefix (typ ++ " -> ") <$> typeOf (expr ++ " . (id  @" ++ typ ++ ")")

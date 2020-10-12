@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo -e "abc\ndef" | hwk id
+echo
+echo -e "abc\ndef" | hwk -l id
+echo
+echo -e "abc\ndef" | hwk -a id
+echo
 seq 1 10 | hwk 'map ("number " ++)'
 echo System.FilePath
 seq 1 10 | hwk -l '(<.> "txt")'
@@ -15,3 +21,9 @@ echo
 hwk -t 'intercalate "\t"'
 echo Data.Bool
 cat /etc/passwd | hwk --all 'bool "no" "yes" . isInfixOf "1000"'
+echo
+hwk -e lines
+echo
+hwk -e '1 + 1'
+echo
+hwk -e id
