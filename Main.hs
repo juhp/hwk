@@ -61,7 +61,6 @@ runExpr mode stmt {-files-} = do
       setHwkImports imports
       let polyList = "toList . "
           polyString = "toString . "
-          polyEval = "toEval "
       case mode of
         DefaultMode -> do
           fn <- interpret (polyList ++ stmt) (as :: [String] -> [String])
@@ -82,12 +81,14 @@ runExpr mode stmt {-files-} = do
           typeOf stmt >>= liftIO . putStrLn . cleanupType
 #endif
         EvalMode -> do
-          typ <- typeOf stmt
+          typ <- cleanupType <$> typeOf stmt
           case typ of
-            "[Char]" -> do
+            "String" -> do
               interpret stmt "a String" >>= liftIO . putStrLn
             "[String]" -> do
               interpret stmt ["a String"] >>= liftIO . mapM_ putStrLn
+            "[[String]]" -> do
+              interpret stmt [["a String"]] >>= liftIO . mapM_ (putStrLn . unwords)
             "[Int]" -> do
               interpret stmt [1 :: Int] >>= liftIO . mapM_ (putStrLn . show)
             "[[Int]]" -> do
