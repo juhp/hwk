@@ -111,6 +111,7 @@ mapInputList stmt inputs = do
       fn <- interpret stmt (as :: [String] -> [[Int]])
       liftIO $ mapM_ (putStrLn . unwords . map show) (fn inputs)
     _ -> do
+      liftIO $ warn typ
       fn <- interpret stmt (as :: [String] -> [String])
       liftIO $ mapM_ putStrLn (fn inputs)
 
@@ -138,6 +139,7 @@ mapEachLine stmt inputs = do
       fn <- interpret stmt (as :: String -> [[Int]])
       liftIO $ mapM_ (putStrLn . L.intercalate "\t" . map (unwords . map show) .fn) inputs
     _ -> do
+      liftIO $ warn typ
       fn <- interpret stmt (as :: String -> String)
       liftIO $ mapM_ putStrLn (map fn inputs)
 
@@ -165,6 +167,7 @@ applyToInput stmt input = do
       fn <- interpret stmt (as :: String -> [[Int]])
       liftIO $ mapM_ (putStrLn . unwords . map show) (fn input)
     _ -> do
+      liftIO $ warn typ
       fn <- interpret stmt (as :: String -> [String])
       liftIO $ mapM_ putStrLn (fn input)
 
