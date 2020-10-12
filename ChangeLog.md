@@ -1,6 +1,13 @@
 # Version history for hwk
 
-## 0.2.1 (2020-10-11)
+## 0.4 (2020-10-12)
+- add --eval mode
+- refactor: drop ToList and ToString classes
+- import Data.List.Extra by default
+- --all: remove trailing newline
+- add examples/
+
+## 0.3 (2020-10-11)
 - add --line mode: takes a function on a String - applied to every line
   - uses new ToString class (not ToList)
 - add --type-check: prints the type of a given function
