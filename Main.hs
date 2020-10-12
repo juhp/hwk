@@ -85,7 +85,7 @@ runExpr mode stmt {-files-} = do
     errorString e = show e
 
 cleanupType :: String -> String
-cleanupType = L.replace "[Char]" "String"
+cleanupType = L.replace "FilePath" "String" . L.replace "[Char]" "String"
 
 -- fn $ lines input
 mapInputList :: String -> [String] -> InterpreterT IO ()
