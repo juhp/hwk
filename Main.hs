@@ -103,10 +103,10 @@ mapInputList stmt inputs = do
       liftIO $ mapM_ (putStrLn . unwords) (fn inputs)
     "Int" -> do
       fn <- interpret stmt (as :: [String] -> Int)
-      liftIO $ (putStrLn . show) (fn inputs)
+      liftIO $ print (fn inputs)
     "[Int]" -> do
       fn <- interpret stmt (as :: [String] -> [Int])
-      liftIO $ mapM_ (putStrLn . show) (fn inputs)
+      liftIO $ mapM_ print (fn inputs)
     "[[Int]]" -> do
       fn <- interpret stmt (as :: [String] -> [[Int]])
       liftIO $ mapM_ (putStrLn . unwords . map show) (fn inputs)
@@ -131,7 +131,7 @@ mapEachLine stmt inputs = do
       liftIO $ mapM_ (putStrLn . L.intercalate "\t" . map unwords . fn) inputs
     "Int" -> do
       fn <- interpret stmt (as :: String -> Int)
-      liftIO $ mapM_ (putStrLn . show . fn) inputs
+      liftIO $ mapM_ (print . fn) inputs
     "[Int]" -> do
       fn <- interpret stmt (as :: String -> [Int])
       liftIO $ mapM_ (putStrLn . unwords . map show . fn) inputs
@@ -141,7 +141,7 @@ mapEachLine stmt inputs = do
     _ -> do
       liftIO $ warn typ
       fn <- interpret stmt (as :: String -> String)
-      liftIO $ mapM_ putStrLn (map fn inputs)
+      liftIO $ mapM_ (putStrLn . fn) inputs
 
 -- fn input
 applyToInput :: String -> String -> InterpreterT IO ()
@@ -159,10 +159,10 @@ applyToInput stmt input = do
       liftIO $ mapM_ (putStrLn . unwords) (fn input)
     "Int" -> do
       fn <- interpret stmt (as :: String -> Int)
-      liftIO $ (putStrLn . show) (fn input)
+      liftIO $ print (fn input)
     "[Int]" -> do
       fn <- interpret stmt (as :: String -> [Int])
-      liftIO $ mapM_ (putStrLn . show) (fn input)
+      liftIO $ mapM_ print (fn input)
     "[[Int]]" -> do
       fn <- interpret stmt (as :: String -> [[Int]])
       liftIO $ mapM_ (putStrLn . unwords . map show) (fn input)
@@ -193,7 +193,7 @@ evalExpr stmt = do
     "[[String]]" -> do
       interpret stmt [["a String"]] >>= liftIO . mapM_ (putStrLn . unwords)
     "[Int]" -> do
-      interpret stmt [1 :: Int] >>= liftIO . mapM_ (putStrLn . show)
+      interpret stmt [1 :: Int] >>= liftIO . mapM_ print
     "[[Int]]" -> do
       interpret stmt [[1 :: Int]] >>= liftIO . mapM_ (putStrLn . unwords . map show)
     _ -> do
