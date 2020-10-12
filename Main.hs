@@ -14,7 +14,7 @@ import System.IO (hPutStrLn, stderr)
 
 import Paths_hwk (getDataDir, version)
 
-data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode
+data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode | EvalMode
   deriving Eq
 
 main :: IO ()
@@ -26,6 +26,7 @@ main =
     modeOpt :: Parser HwkMode
     modeOpt =
       flagWith' TypeMode 't' "type-check" "Print out the type of the given function" <|>
+      flagWith' EvalMode 'e' "eval" "Evaluate a Haskell expression" <|>
       flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
       flagWith DefaultMode LineMode 'l' "line" "Apply function to each line"
 
@@ -58,29 +59,43 @@ runExpr mode stmt {-files-} = do
           then interpret "userModules" infer
           else return ["Prelude", "Data.List"]
       setHwkImports imports
-      if mode == TypeMode then do
+      let polyList = "toList . "
+          polyString = "toString . "
+          polyEval = "toEval "
+      case mode of
+        DefaultMode -> do
+          fn <- interpret (polyList ++ stmt) (as :: [String] -> [String])
+          liftIO $ mapM_ putStrLn (fn (lines input))
+        LineMode -> do
+          fn <- interpret (polyString ++ stmt) (as :: String -> String)
+          liftIO $ mapM_ (putStrLn . fn) (lines input)
+        WholeMode -> do
+          fn <- interpret (polyList ++ stmt) (as :: String -> [String])
+          liftIO $ mapM_ putStrLn (fn (removeTrailingNewline input))
+        TypeMode -> do
 #if MIN_VERSION_hint(0,8,0)
-        etypchk <- typeChecksWithDetails stmt
-        case etypchk of
-          Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
-          Right typ -> liftIO $ putStrLn (cleanupType typ)
+          etypchk <- typeChecksWithDetails stmt
+          case etypchk of
+            Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
+            Right typ -> liftIO $ putStrLn (cleanupType typ)
 #else
-        typeOf stmt >>= liftIO . putStrLn . cleanupType
+          typeOf stmt >>= liftIO . putStrLn . cleanupType
 #endif
-        else do
-        let polyList = "toList . "
-            polyString = "toString . "
-        case mode of
-          DefaultMode -> do
-            fn <- interpret (polyList ++ stmt) (as :: [String] -> [String])
-            liftIO $ mapM_ putStrLn (fn (lines input))
-          LineMode -> do
-            fn <- interpret (polyString ++ stmt) (as :: String -> String)
-            liftIO $ mapM_ (putStrLn . fn) (lines input)
-          WholeMode -> do
-            fn <- interpret (polyList ++ stmt) (as :: String -> [String])
-            liftIO $ mapM_ putStrLn (fn (removeTrailingNewline input))
-          TypeMode -> error "already handled earlier"
+        EvalMode -> do
+          typ <- typeOf stmt
+          case typ of
+            "[Char]" -> do
+              interpret stmt "a String" >>= liftIO . putStrLn
+            "[String]" -> do
+              interpret stmt ["a String"] >>= liftIO . mapM_ putStrLn
+            "[Int]" -> do
+              interpret stmt [1 :: Int] >>= liftIO . mapM_ (putStrLn . show)
+            "[[Int]]" -> do
+              interpret stmt [[1 :: Int]] >>= liftIO . mapM_ (putStrLn . unwords . map show)
+            _ -> do
+              res <- eval stmt
+              -- FIXME option to display type
+              liftIO $ putStrLn $ res ++ " :: " ++ typ
       where
         cleanupType :: String -> String
         cleanupType = L.replace "[Char]" "String"
