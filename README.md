@@ -5,7 +5,7 @@ see the [original README file](README.md.orig).
 
 <img align="right" alt="hwk" src="hwk.png" />
 
-**hwk** (pronounced "hawk") is a simple Haskell-based text stream manipulation tool, somewhat similar to tools like **awk** or **sed**.
+**hwk** (pronounced "hawk") is a simple Haskell-based text processing cli tool, somewhat similar to tools like **awk**, **grep**, **sed**.
 `hwk` applies concisely composed pure functions to a list of strings from stdin. Because Haskell is lazy and has a powerful arsenal of functions, there is no need to invent another DSL. Hopefully this tool will also encourage more people to think functionally.
 
 ## Example
