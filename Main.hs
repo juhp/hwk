@@ -79,11 +79,18 @@ runExpr mode stmt {-files-} = do
             liftIO $ mapM_ (putStrLn . fn) (lines input)
           WholeMode -> do
             fn <- interpret (polyList ++ stmt) (as :: String -> [String])
-            liftIO $ mapM_ putStrLn (fn input)
+            liftIO $ mapM_ putStrLn (fn (removeTrailingNewline input))
           TypeMode -> error "already handled earlier"
       where
         cleanupType :: String -> String
         cleanupType = L.replace "[Char]" "String"
+
+        removeTrailingNewline :: String -> String
+        removeTrailingNewline "" = ""
+        removeTrailingNewline s =
+          if last s == '\n'
+          then init s
+          else s
 
     -- FIXME use Set
     setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
