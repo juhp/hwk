@@ -8,7 +8,7 @@ import Data.List (intercalate)
 -- these modules must be from installed packages
 userModules :: [String]
 userModules = [ "Prelude", "Data.List", "Data.Char", "Data.Bool"
-              -- , "Data.List.Extra", "Data.Tuple.Extra"
+              , "Data.List.Extra", "Data.Tuple.Extra"
               , "System.FilePath"
               ]
 
