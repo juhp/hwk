@@ -60,7 +60,7 @@ yes
 ```
 
 ## Configuration
-`hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function.
+`hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function. Hint (ghci) also checks the current directory when loading so one can also override the configuration on a directory basis.
 
 The default configuration [Hwk module](data/Hwk.hs) just sets
 the `Prelude`, `Data.List`, and `Data.Char` modules to be imported into the hint interpreter.

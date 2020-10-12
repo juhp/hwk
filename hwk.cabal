@@ -14,7 +14,7 @@ copyright:           2016-2017 Lukas Martinelli,
                      2020 Jens Petersen
 category:            Development
 build-type:          Simple
-data-files:          Config.hs
+data-files:          Hwk.hs
 extra-source-files:  install.sh
 extra-doc-files:     README.md
                      ChangeLog.md
