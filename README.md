@@ -6,7 +6,15 @@ see the [original README file](README.md.orig).
 <img align="right" alt="hwk" src="hwk.png" />
 
 **hwk** (pronounced "hawk") is a simple Haskell-based text processing cli tool, somewhat similar to tools like **awk**, **grep**, **sed**.
-`hwk` applies concisely composed pure functions to a list of strings from stdin. Because Haskell is lazy and has a powerful arsenal of functions, there is no need to invent another DSL. Hopefully this tool will also encourage more people to think functionally.
+`hwk` applies concisely composed pure functions to a list of strings from stdin. This allows during text processing with pure Haskell functions, and not having to remember any obscure DSL. Hopefully this tool will also encourage more people to think functionally.
+
+**hwk** is pretty similar to **[Hawk](https://github.com/gelisam/hawk)**,
+so you may also want to try that for a different more sophisticated monadic
+implementation. Some of main differences are:
+
+- hwk uses String for input for type simplicity, whereas hawk uses ByteString
+- hawk has special options for controlling input and output delimiters, whereas in hwk everything is roughly just `[String] -> [String]` (more details below)
+- by default hwk applies a function to a list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`.
 
 ## Example
 
