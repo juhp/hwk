@@ -1,23 +1,23 @@
 # hwk ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 
+<img align="right" alt="hwk" src="hwk.png" />
+
+**hwk** (pronounced "hawk") is a simple Haskell-based text processing commandline tool, somewhat similar to tools like **awk**, **grep**, **sed**.
+`hwk` applies composed pure Haskell functions to a list of strings from stdin, enabling text processing without having to remember an obscure DSL or cli options. This tool can also help to encourage people to think functionally.
+
 hwk was originally written by Lukas Martinelli in 2016-2017:
 see the [original README file](README.md.orig).
 
-<img align="right" alt="hwk" src="hwk.png" />
-
-**hwk** (pronounced "hawk") is a simple Haskell-based text processing cli tool, somewhat similar to tools like **awk**, **grep**, **sed**.
-`hwk` applies concisely composed pure functions to a list of strings from stdin. This allows during text processing with pure Haskell functions, and not having to remember any obscure DSL. Hopefully this tool will also encourage more people to think functionally.
-
-**hwk** is pretty similar to **[Hawk](https://github.com/gelisam/hawk)**,
+**hwk** is pretty similar to [**Hawk**](https://github.com/gelisam/hawk),
 so you may also want to try that for a different more sophisticated monadic
 implementation. Some of main differences are:
 
 - hwk uses String for input for type simplicity, whereas hawk uses ByteString
 - hawk has special options for controlling input and output delimiters, whereas in hwk everything is roughly just `[String] -> [String]` (more details below)
-- by default hwk applies a function to a list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`.
+- by default hwk applies a function to the list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`.
 
 ## Example
-See also the [examples](examples/) directory for more simple use cases.
+Some simple use-cases are in the [examples](examples/) directory.
 
 Change and append a string to each line:
 ```bash
@@ -45,12 +45,12 @@ seq 10 12 | hwk --line 'let {fact 0 = 1; fact n = n * fact (n - 1)} in fact . in
 
 Extract data from a file:
 ```bash
-$ cat /etc/passwd | hwk --line 'reverse . filter (/= "x") . take 3 . splitOn ":"' | head -3
+$ cat /etc/passwd | hwk -l 'reverse . filter (/= "x") . take 3 . splitOn ":"' | head -3
 0 root
 1 bin
 2 daemon
 ```
-(uses `splitOn` from the extra library).
+(uses `splitOn` from the extra library; `-l` is the short form of `--line`).
 
 The argument passed to `hwk` must be a valid Haskell function: a function that takes a list of strings and returns a new list or a single value.
 
@@ -123,6 +123,7 @@ The following return values are supported:
 
 Open an issue or pull request at https://github.com/juhp/hwk
 to report problems or make suggestions and contributions.
+Usage examples are also welcome.
 
 ## Related/alternative projects
 

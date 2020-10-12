@@ -1,1 +1,4 @@
+- support files
+  - -n
 - sed-like -i[SUFFIX], --in-place[=SUFFIX]
+- use Typeable/Data.Type.Equality?
