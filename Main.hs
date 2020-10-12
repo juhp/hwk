@@ -25,7 +25,7 @@ main =
   where
     modeOpt :: Parser HwkMode
     modeOpt =
-      flagWith' TypeMode 't' "type-check" "Print out the type of the given function" <|>
+      flagWith' TypeMode 't' "typecheck" "Print out the type of the given function" <|>
       flagWith' EvalMode 'e' "eval" "Evaluate a Haskell expression" <|>
       flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
       flagWith DefaultMode LineMode 'l' "line" "Apply function to each line"

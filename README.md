@@ -17,6 +17,7 @@ implementation. Some of main differences are:
 - by default hwk applies a function to a list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`.
 
 ## Example
+See also the [examples](examples/) directory for more simple use cases.
 
 Change and append a string to each line:
 ```bash
@@ -49,11 +50,11 @@ $ cat /etc/passwd | hwk --line 'reverse . filter (/= "x") . take 3 . splitOn ":"
 1 bin
 2 daemon
 ```
-(a module defining `splitOn` from the extra or split library needs to be added to the Hwk.hs config file).
+(uses `splitOn` from the extra library).
 
 The argument passed to `hwk` must be a valid Haskell function: a function that takes a list of strings and returns a new list or a single value.
 
-Check where input contains a certain string:
+Check whether the input contains a certain string:
 ```
 $ cat /etc/passwd | hwk --all 'bool "no" "yes" . isInfixOf "1000"'
 yes
@@ -62,15 +63,16 @@ yes
 ## Configuration
 `hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function. Hint (ghci) also checks the current directory when loading so one can also override the configuration on a directory basis.
 
-The default configuration [Hwk module](data/Hwk.hs) just sets
-the `Prelude`, `Data.List`, and `Data.Char` modules to be imported into the hint interpreter.
+The default [Hwk module](data/Hwk.hs) configuration imports
+`Prelude`, `Data.List`, `Data.Char`, and `System.FilePath`
+into the hint interpreter.
 
 The first time hwk is run it sets up `~/.config/hwk/Hwk.hs`.
 
 You can add other modules to import or define your own functions in
 `~/.config/hwk/Hwk.hs`.
 
-After a hwk version update you may wish/have to update up your Hwk.hs file to take account of new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with version suffix.
+After a hwk version update you may wish or have to update up your Hwk.hs file to take account of new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with the version suffix.
 
 ## Install
 Either use the `install.sh` script, or install by cabal-install or stack
@@ -100,18 +102,22 @@ and then run it with `stack exec hwk ...` using the same resolver.
 ## How does `hwk` work?
 
 - `hwk` use the hint library to evaluate haskell functions on standard input.
-- By default it splits the input to a list of lines: `[String] -> ToList a`
-- Use `-a` or `--all` to apply a function to all the input: `String -> Tolist a`
+- By default it splits the input to a list of lines and applies the function to them
+- Use `-a` or `--all` to apply a function to all the input,
+  or `-l`/`--line` to map the function on each line separately.
+- You can only typecheck the function or an expr with `-t`/`--typecheck`
+  or evaluate an expr with `-e`/`--eval`.
 
 ## Supported return types
 
-By default the following instances of the `ToList` class are defined:
+The following return values are supported:
 
 - `String`
 - `[String]`
 - `[[String]]`
 - `Int`
 - `[Int]`
+- `[[Int]]`
 
 ## Contribute
 
