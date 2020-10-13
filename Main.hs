@@ -14,7 +14,7 @@ import System.IO (hPutStrLn, stderr)
 
 import Paths_hwk (getDataDir, version)
 
-data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode | EvalMode
+data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode | EvalMode | RunMode
   deriving Eq
 
 main :: IO ()
@@ -26,10 +26,11 @@ main = do
   where
     modeOpt :: Parser HwkMode
     modeOpt =
+      flagWith' LineMode 'l' "line" "Apply function to each line" <|>
+      flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
       flagWith' TypeMode 't' "typecheck" "Print out the type of the given function" <|>
       flagWith' EvalMode 'e' "eval" "Evaluate a Haskell expression" <|>
-      flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
-      flagWith DefaultMode LineMode 'l' "line" "Apply function to each line"
+      flagWith DefaultMode RunMode 'r' "run" "Run Haskell IO"
 
     cfgdirOpt :: String -> Parser (Maybe FilePath)
     cfgdirOpt dir =
@@ -79,6 +80,8 @@ runExpr userdir mode mcfgdir stmt files = do
         WholeMode -> applyToInput stmt (removeTrailingNewline input)
         TypeMode -> typeOfExpr stmt
         EvalMode -> evalExpr stmt
+        -- FIXME take args
+        RunMode -> execExpr stmt
       where
         removeTrailingNewline :: String -> String
         removeTrailingNewline "" = ""
@@ -206,11 +209,24 @@ evalExpr stmt = do
       interpret stmt ["a String"] >>= liftIO . mapM_ putStrLn
     "[[String]]" -> do
       interpret stmt [["a String"]] >>= liftIO . mapM_ (putStrLn . unwords)
+    "Int" -> do
+      interpret stmt (1 :: Int) >>= liftIO . print
     "[Int]" -> do
       interpret stmt [1 :: Int] >>= liftIO . mapM_ print
     "[[Int]]" -> do
       interpret stmt [[1 :: Int]] >>= liftIO . mapM_ (putStrLn . unwords . map show)
-    -- FIXME add --safe
+    _ ->
+      if " -> " `L.isInfixOf` typ
+        then liftIO $ putStrLn typ
+        else
+        -- FIXME option to display type
+        eval stmt >>= liftIO . putStrLn
+
+-- FIXME add --safe?
+execExpr :: String -> InterpreterT IO ()
+execExpr stmt = do
+  typ <- typeOf stmt
+  case cleanupType typ of
     "IO ()" -> runStmt stmt
     "IO String" ->
       runStmt $ stmt ++ ">>= putStrLn"
@@ -218,12 +234,7 @@ evalExpr stmt = do
       runStmt $ stmt ++ ">>= mapM_ putStrLn"
     "IO [[String]]" ->
       runStmt $ stmt ++ ">>= mapM_ (putStrLn . unwords)"
-    _ ->
-      if " -> " `L.isInfixOf` typ
-        then liftIO $ putStrLn typ
-        else
-        -- FIXME option to display type
-        eval stmt >>= liftIO . putStrLn
+    _ -> liftIO $ warn typ
 
 resultTypeOfApplied :: MonadInterpreter m => String -> String -> m String
 resultTypeOfApplied expr typ =
