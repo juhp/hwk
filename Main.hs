@@ -55,15 +55,12 @@ runExpr userdir mode mcfgdir stmt files = do
           copyFile (datadir </> "Hwk.hs") usercfg
           warn $ usercfg ++ " created"
         return userdir
-  let inputs = if null files then ["-"] else files
-  forM_ inputs $ \ file ->
-    runInterpreter (runHint cfgdir file) >>=
+  runInterpreter (runHint cfgdir) >>=
     either (putStrLn . errorString) return
   where
-    runHint :: FilePath -> FilePath -> Interpreter ()
-    runHint cfgdir file = do
+    runHint :: FilePath -> Interpreter ()
+    runHint cfgdir = do
       -- could ignore this for eval or typecheck
-      input <- liftIO $ if file == "-" then getContents else readFile file
       set [searchPath := [cfgdir], languageExtensions := [TypeApplications]]
       loadModules ["Hwk"]
       let setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
@@ -74,15 +71,26 @@ runExpr userdir mode mcfgdir stmt files = do
           then interpret "userModules" infer
           else return ["Prelude", "Data.List"]
       setHwkImports imports
+      let inputs = if null files then ["-"] else files
       case mode of
-        DefaultMode -> mapInputList stmt (lines input)
-        LineMode -> mapEachLine stmt (lines input)
-        WholeMode -> applyToInput stmt (removeTrailingNewline input)
+        DefaultMode ->
+          withInputFiles inputs (mapInputList stmt . lines)
+        LineMode ->
+          withInputFiles inputs (mapEachLine stmt . lines)
+        WholeMode -> do
+          withInputFiles inputs (applyToInput stmt . removeTrailingNewline)
+        -- FIXME take or warn about args
         TypeMode -> typeOfExpr stmt
         EvalMode -> evalExpr stmt
-        -- FIXME take args
         RunMode -> execExpr stmt
       where
+        withInputFiles :: [FilePath] -> (String -> Interpreter ())
+                       -> Interpreter ()
+        withInputFiles inputs interp = do
+          forM_ inputs $ \ file ->
+            liftIO (if file == "-" then getContents else readFile file) >>=
+            interp
+
         removeTrailingNewline :: String -> String
         removeTrailingNewline "" = ""
         removeTrailingNewline s =
@@ -105,7 +113,7 @@ cleanupType :: String -> String
 cleanupType = L.replace "FilePath" "String" . L.replace "[Char]" "String"
 
 -- fn $ lines input
-mapInputList :: String -> [String] -> InterpreterT IO ()
+mapInputList :: String -> [String] -> Interpreter ()
 mapInputList stmt inputs = do
   typ <- resultTypeOfApplied stmt "[String]"
   case cleanupType typ of
@@ -133,7 +141,7 @@ mapInputList stmt inputs = do
       liftIO $ mapM_ putStrLn (fn inputs)
 
 -- map fn $ lines input
-mapEachLine :: String -> [String] -> InterpreterT IO ()
+mapEachLine :: String -> [String] -> Interpreter ()
 mapEachLine stmt inputs = do
   typ <- resultTypeOfApplied stmt "String"
   case cleanupType typ of
@@ -161,7 +169,7 @@ mapEachLine stmt inputs = do
       liftIO $ mapM_ (putStrLn . fn) inputs
 
 -- fn input
-applyToInput :: String -> String -> InterpreterT IO ()
+applyToInput :: String -> String -> Interpreter ()
 applyToInput stmt input = do
   typ <- resultTypeOfApplied stmt "String"
   case cleanupType typ of
@@ -188,7 +196,7 @@ applyToInput stmt input = do
       fn <- interpret stmt (as :: String -> [String])
       liftIO $ mapM_ putStrLn (fn input)
 
-typeOfExpr :: String -> InterpreterT IO ()
+typeOfExpr :: String -> Interpreter ()
 typeOfExpr stmt = do
 #if MIN_VERSION_hint(0,8,0)
   etypchk <- typeChecksWithDetails stmt
@@ -199,7 +207,7 @@ typeOfExpr stmt = do
   typeOf stmt >>= liftIO . putStrLn . cleanupType
 #endif
 
-evalExpr :: String -> InterpreterT IO ()
+evalExpr :: String -> Interpreter ()
 evalExpr stmt = do
   typ <- typeOf stmt
   case cleanupType typ of
@@ -223,7 +231,7 @@ evalExpr stmt = do
         eval stmt >>= liftIO . putStrLn
 
 -- FIXME add --safe?
-execExpr :: String -> InterpreterT IO ()
+execExpr :: String -> Interpreter ()
 execExpr stmt = do
   typ <- typeOf stmt
   case cleanupType typ of
