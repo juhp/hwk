@@ -1,7 +1,11 @@
 {-# LANGUAGE CPP #-}
 
+#if !MIN_VERSION_simple_cmd_args(0,1,4)
+import Control.Applicative (
 #if !MIN_VERSION_simple_cmd_args(0,1,3)
-import Control.Applicative ((<|>))
+    (<|>),
+#endif
+    many)
 #endif
 import Control.Monad.Extra
 import qualified Data.List.Extra as L

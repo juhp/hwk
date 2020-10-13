@@ -1,0 +1,7 @@
+resolver: lts-11.22
+
+extra-deps:
+- simple-cmd-0.1.4
+- simple-cmd-args-0.1.2
+- hint-0.8.0
+- exceptions-0.10.0
