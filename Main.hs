@@ -18,7 +18,7 @@ import System.IO (hPutStrLn, stderr)
 
 import Paths_hwk (getDataDir, version)
 
-data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode | EvalMode | RunMode
+data HwkMode = DefaultMode | LineMode | WordsMode | WholeMode | TypeMode | EvalMode | RunMode
   deriving Eq
 
 main :: IO ()
@@ -31,6 +31,7 @@ main = do
     modeOpt :: Parser HwkMode
     modeOpt =
       flagWith' LineMode 'l' "line" "Apply function to each line" <|>
+      flagWith' WordsMode 'w' "words" "Apply function to list of words per line" <|>
       flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
       flagWith' TypeMode 't' "typecheck" "Print out the type of the given function" <|>
       flagWith' EvalMode 'e' "eval" "Evaluate a Haskell expression" <|>
@@ -81,6 +82,8 @@ runExpr userdir mode mcfgdir stmt files = do
           withInputFiles inputs (mapInputList stmt . lines)
         LineMode ->
           withInputFiles inputs (mapEachLine stmt . lines)
+        WordsMode ->
+          withInputFiles inputs (mapWordsLine stmt . map words . lines)
         WholeMode -> do
           withInputFiles inputs (applyToInput stmt . removeTrailingNewline)
         -- FIXME take or warn about args
@@ -171,6 +174,34 @@ mapEachLine stmt inputs = do
       liftIO $ warn typ
       fn <- interpret stmt (as :: String -> String)
       liftIO $ mapM_ (putStrLn . fn) inputs
+
+-- map fn $ lines input
+mapWordsLine :: String -> [[String]] -> Interpreter ()
+mapWordsLine stmt inputs = do
+  typ <- resultTypeOfApplied stmt "[String]"
+  case cleanupType typ of
+    "String" -> do
+      fn <- interpret stmt (as :: [String] -> String)
+      liftIO $ mapM_ (putStrLn . fn) inputs
+    "[String]" -> do
+      fn <- interpret stmt (as :: [String] -> [String])
+      liftIO $ mapM_ (putStrLn . unwords . fn) inputs
+    "[[String]]" -> do
+      fn <- interpret stmt (as :: [String] -> [[String]])
+      liftIO $ mapM_ (putStrLn . L.intercalate "\t" . map unwords . fn) inputs
+    "Int" -> do
+      fn <- interpret stmt (as :: [String] -> Int)
+      liftIO $ mapM_ (print . fn) inputs
+    "[Int]" -> do
+      fn <- interpret stmt (as :: [String] -> [Int])
+      liftIO $ mapM_ (putStrLn . unwords . map show . fn) inputs
+    "[[Int]]" -> do
+      fn <- interpret stmt (as :: [String] -> [[Int]])
+      liftIO $ mapM_ (putStrLn . L.intercalate "\t" . map (unwords . map show) .fn) inputs
+    _ -> do
+      liftIO $ warn typ
+      fn <- interpret stmt (as :: [String] -> [String])
+      liftIO $ mapM_ (putStrLn . unwords . fn) inputs
 
 -- fn input
 applyToInput :: String -> String -> Interpreter ()

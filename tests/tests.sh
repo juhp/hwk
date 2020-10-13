@@ -27,3 +27,7 @@ echo
 hwk -e '1 + 1'
 echo
 hwk -e id
+echo
+ls -l | hwk -w 'drop 4'
+echo
+ls -l | hwk -w length

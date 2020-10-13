@@ -126,7 +126,8 @@ and then run it with `stack exec hwk ...` using the same resolver.
 - `hwk` use the hint library to apply haskell functions to input.
 - By default it splits the input to a list of lines and applies the function to them
 - Use `-a` or `--all` to apply a function to all the input,
-  or `-l`/`--line` to map the function on each line separately.
+  or `-l`/`--line` to map the function on each line separately,
+  or `-w`/`--words` to map the function on each line of words,
 - If you pass file arguments, their contents will be read and passed to the function.
 - You can also typecheck the function or an expression with `-t`/`--typecheck`,
   evaluate an expr with `-e`/`--eval`, or `-r`/`--run` an IO statement.
