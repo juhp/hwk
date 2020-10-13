@@ -210,10 +210,18 @@ evalExpr stmt = do
       interpret stmt [1 :: Int] >>= liftIO . mapM_ print
     "[[Int]]" -> do
       interpret stmt [[1 :: Int]] >>= liftIO . mapM_ (putStrLn . unwords . map show)
-    _ -> do
+    -- FIXME add --safe
+    "IO ()" -> runStmt stmt
+    "IO String" ->
+      runStmt $ stmt ++ ">>= putStrLn"
+    "IO [String]" ->
+      runStmt $ stmt ++ ">>= mapM_ putStrLn"
+    "IO [[String]]" ->
+      runStmt $ stmt ++ ">>= mapM_ (putStrLn . unwords)"
+    _ ->
       if " -> " `L.isInfixOf` typ
         then liftIO $ putStrLn typ
-        else do
+        else
         -- FIXME option to display type
         eval stmt >>= liftIO . putStrLn
 
