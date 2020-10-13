@@ -27,8 +27,9 @@ source-repository head
 
 executable hwk
   main-is:             Main.hs
-  other-modules:       Paths_hwk
+  hs-source-dirs:      src
   autogen-modules:     Paths_hwk
+  other-modules:       Paths_hwk
   build-depends:       base <5,
                        directory >= 1.2.3.0,
                        extra,
