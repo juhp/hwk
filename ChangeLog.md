@@ -1,5 +1,11 @@
 # Version history for hwk
 
+## 0.5 (2020-10-13)
+- file arguments can now provide input
+- experimental --run mode to execute IO
+- eval no longer prints type
+- add --config-dir option
+
 ## 0.4 (2020-10-12)
 - add --eval mode
 - refactor: drop ToList and ToString classes

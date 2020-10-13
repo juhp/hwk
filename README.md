@@ -2,8 +2,8 @@
 
 <img align="right" alt="hwk" src="hwk.png" />
 
-**hwk** (pronounced "hawk") is a simple Haskell-based text processing commandline tool, somewhat similar to tools like **awk**, **grep**, **sed**.
-`hwk` applies composed pure Haskell functions to a list of lines of strings from stdin or files, enabling text processing without having to remember an obscure DSL or awkward cli options. This tool can also help to encourage people to think functionally.
+**hwk** (pronounced "hawk") is a simple Haskell-based commandline text processing tool, somewhat similar to tools like *awk*, *grep*, *sed*.
+`hwk` applies composed pure Haskell functions to a list of lines of input, enabling text processing without having to remember an obscure DSL or awkward cli options. This tool can also help to encourage people to think functionally.
 
 hwk was originally written by Lukas Martinelli in 2016-2017:
 see the [original README file](README.md.orig).
@@ -37,7 +37,7 @@ The ints function transforms a list of strings into a list of ints
 
 Factorials in your shell scripts!:
 ```bash
-seq 10 12 | hwk --line 'let {fact 0 = 1; fact n = n * fact (n - 1)} in fact . int'
+$ seq 10 12 | hwk --line 'let {fact 0 = 1; fact n = n * fact (n - 1)} in fact . int'
 3628800
 39916800
 479001600
@@ -62,7 +62,7 @@ yes
 
 You can also type-check functions:
 ```bash
-$ hwk -t take
+$ hwk --typecheck take
 Int -> [a] -> [a]
 ```
 or expressions:
@@ -77,6 +77,12 @@ $ hwk -e '2 ^ 32 `div` 1024'
 4194304
 ```
 
+Run commands:
+```bash
+$ hwk --run getCurrentDirectory
+/home/user/src
+```
+
 ## Configuration
 `hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function. Hint (ghci) checks the current directory first when loading, so one can override the configuration on a directory basis.
 
@@ -89,43 +95,41 @@ into the hint interpreter.
 You can add other modules to import to `userModules` or
 define your own functions to use in hwk expressions if you wish.
 
-After a hwk version update you may need or wish to update up your Hwk.hs file to take account of new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with the version suffix.
+After a hwk version update you may need or wish to sync up your Hwk.hs file to take account of any new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with version suffix.
 
-One can also use `-c`/`--config-dir` to specify a different location to the default config dir.
+One can specify `-c`/`--config-dir` to load Hwk.hs from a different location.
 
-## Install
+## Installation
 Either use the `install.sh` script, or install by cabal-install or stack
 as described below:
 
-### Install script from source tree or git
+### install.sh script from source tree or git
 Use `stack unpack hwk` or `git clone https://github.com/juhp/hwk`.
 
-Then go to the source directory and run the `install.sh` script, which
+Then go to the source directory and run the `install.sh` script, which first runs `stack install`, then moves the binary installed by `stack install` to `~/.local/lib/hwk`, and sets up a wrapper script `~/.local/bin/hwk` which runs it.
 
-- first runs `stack install`
-- then moves the binary installed by `stack install` to `~/.local/lib/hwk`, and sets up a wrapper script `~/.local/bin/hwk` which runs it.
-
-You may wish to change the resolver in stack.yaml first: it is also used to determine the resolver used by the created `hwk` wrapper script.
+If you wish you can change the resolver in stack.yaml first: it is also used to determine the resolver used by the created `hwk` wrapper script.
 
 ### cabal
 If you are on a Linux distro with a system installed ghc and Haskell libaries,
 you can install with `cabal install` to make use of them.
 
 ### stack
-Installing and running by stack is better if you do not have a system ghc
+Installing and running with stack is better if you do not have a system ghc
 and/or global system Haskell libraries installed.
 
-If you prefer not to use `install.sh` in the source dir
+If you prefer not to use `install.sh` in the source dir,
 you can install by hand: run `stack install`,
 and then run it with `stack exec hwk ...` using the same resolver.
 
 ## How does `hwk` work?
-- `hwk` use the hint library to evaluate haskell functions on standard input.
+- `hwk` use the hint library to apply haskell functions to input.
 - By default it splits the input to a list of lines and applies the function to them
 - Use `-a` or `--all` to apply a function to all the input,
   or `-l`/`--line` to map the function on each line separately.
+- If you pass file arguments, their contents will be read and passed to the function.
 - You can also typecheck the function or an expression with `-t`/`--typecheck`,
-  or evaluate an expr with `-e`/`--eval`.
+  evaluate an expr with `-e`/`--eval`, or `-r`/`--run` an IO statement.
 
 ## Supported return types
 

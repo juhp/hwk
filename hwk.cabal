@@ -1,11 +1,11 @@
 name:                hwk
-version:             0.4
-synopsis:            Simple cli text processing with Haskell functions
+version:             0.5
+synopsis:            Commandline text processing with Haskell functions
 description:
             A commandline tool for text processing with Haskell functions,
-            which can used in addition to awk, grep, sed, etc.
-            It applies the function supplied on the commandline using hint
-            to lines of standard input and outputs the results.
+            complementing unix-style tools like awk, grep, and sed.
+            'hwk' applies the function supplied on the commandline using 'hint'
+            to lines of input and outputs the results.
 homepage:            https://github.com/juhp/hwk
 license:             MIT
 license-file:        LICENSE
