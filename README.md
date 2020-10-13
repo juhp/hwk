@@ -3,18 +3,18 @@
 <img align="right" alt="hwk" src="hwk.png" />
 
 **hwk** (pronounced "hawk") is a simple Haskell-based text processing commandline tool, somewhat similar to tools like **awk**, **grep**, **sed**.
-`hwk` applies composed pure Haskell functions to a list of strings from stdin, enabling text processing without having to remember an obscure DSL or cli options. This tool can also help to encourage people to think functionally.
+`hwk` applies composed pure Haskell functions to a list of strings from stdin, enabling text processing without having to remember an obscure DSL or awkward cli options. This tool can also help to encourage people to think functionally.
 
 hwk was originally written by Lukas Martinelli in 2016-2017:
 see the [original README file](README.md.orig).
 
-**hwk** is pretty similar to [**Hawk**](https://github.com/gelisam/hawk),
+**hwk** is pretty similar to [Hawk](https://github.com/gelisam/hawk),
 so you may also want to try that for a different more sophisticated monadic
 implementation. Some of main differences are:
 
 - hwk uses String for input for type simplicity, whereas hawk uses ByteString
-- hawk has special options for controlling input and output delimiters, whereas in hwk everything is roughly just `[String] -> [String]` (more details below)
-- by default hwk applies a function to the list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`.
+- hawk has special options for controlling input and output field/lines delimiters, whereas in hwk everything is roughly just `[String] -> [String]` (more details below)
+- by default hwk applies a function to the list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`. `hwk -a` applies the function to the whole stdin.
 
 ## Examples
 Some simple use-cases are in the [examples](examples/) directory.
@@ -78,18 +78,20 @@ $ hwk -e '2 ^ 32 `div` 1024'
 ```
 
 ## Configuration
-`hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function. Hint (ghci) also checks the current directory when loading so one can also override the configuration on a directory basis.
+`hwk` uses a Haskell configuration file `~/.config/hwk/Hwk.hs` which provides the context for the hint evaluation of the supplied function. Hint (ghci) checks the current directory first when loading, so one can override the configuration on a directory basis.
+
+The first time hwk is run it sets up `~/.config/hwk/Hwk.hs`.
 
 The default [Hwk module](data/Hwk.hs) configuration imports
 `Prelude`, `Data.List`, `Data.Char`, and `System.FilePath`
 into the hint interpreter.
 
-The first time hwk is run it sets up `~/.config/hwk/Hwk.hs`.
+You can add other modules to import to `userModules` or
+define your own functions to use in hwk expressions if you wish.
 
-You can add other modules to import or define your own functions in
-`~/.config/hwk/Hwk.hs`.
+After a hwk version update you may need or wish to update up your Hwk.hs file to take account of new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with the version suffix.
 
-After a hwk version update you may wish or have to update up your Hwk.hs file to take account of new changes: a copy of the latest default Hwk.hs is also put in `~/.config/hwk/` with the version suffix.
+One can also use `-c`/`--config-dir` to specify a different location to the default config dir.
 
 ## Install
 Either use the `install.sh` script, or install by cabal-install or stack
@@ -110,19 +112,19 @@ If you are on a Linux distro with a system installed ghc and Haskell libaries,
 you can install with `cabal install` to make use of them.
 
 ### stack
-Installing by stack is better if you do not have a system ghc
+Installing and running by stack is better if you do not have a system ghc
 and/or global system Haskell libraries installed.
 
-Alternatively to install by hand: run `stack install`,
+If you prefer not to use `install.sh` in the source dir
+you can install by hand: run `stack install`,
 and then run it with `stack exec hwk ...` using the same resolver.
 
 ## How does `hwk` work?
-
 - `hwk` use the hint library to evaluate haskell functions on standard input.
 - By default it splits the input to a list of lines and applies the function to them
 - Use `-a` or `--all` to apply a function to all the input,
   or `-l`/`--line` to map the function on each line separately.
-- You can only typecheck the function or an expr with `-t`/`--typecheck`
+- You can also typecheck the function or an expression with `-t`/`--typecheck`,
   or evaluate an expr with `-e`/`--eval`.
 
 ## Supported return types
@@ -140,12 +142,12 @@ The following return values are supported:
 
 Open an issue or pull request at https://github.com/juhp/hwk
 to report problems or make suggestions and contributions.
-Usage examples are also welcome.
+
+Usage example contributions are also welcome.
 
 ## Related/alternative projects
-
 - https://github.com/gelisam/hawk
 - https://github.com/bawolk/hsp
-- https://code.google.com/p/pyp/
 - https://en.wikipedia.org/wiki/AWK
 - https://en.wikipedia.org/wiki/Sed
+- https://code.google.com/p/pyp/
