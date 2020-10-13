@@ -16,7 +16,7 @@ implementation. Some of main differences are:
 - hawk has special options for controlling input and output delimiters, whereas in hwk everything is roughly just `[String] -> [String]` (more details below)
 - by default hwk applies a function to the list of all the lines of stdin: `hwk -l` corresponds to `hawk -m` and `hawk -a` to `hwk`.
 
-## Example
+## Examples
 Some simple use-cases are in the [examples](examples/) directory.
 
 Change and append a string to each line:
@@ -58,6 +58,23 @@ Check whether the input contains a certain string:
 ```
 $ cat /etc/passwd | hwk --all 'bool "no" "yes" . isInfixOf "1000"'
 yes
+```
+
+You can also type-check functions:
+```bash
+$ hwk -t take
+Int -> [a] -> [a]
+```
+or expressions:
+```bash
+$ hwk -t [1,2]
+Num a => [a]
+```
+
+And evaluate expressions:
+```bash
+$ hwk -e '2 ^ 32 `div` 1024'
+4194304
 ```
 
 ## Configuration
