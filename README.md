@@ -3,7 +3,7 @@
 <img align="right" alt="hwk" src="hwk.png" />
 
 **hwk** (pronounced "hawk") is a simple Haskell-based text processing commandline tool, somewhat similar to tools like **awk**, **grep**, **sed**.
-`hwk` applies composed pure Haskell functions to a list of strings from stdin, enabling text processing without having to remember an obscure DSL or awkward cli options. This tool can also help to encourage people to think functionally.
+`hwk` applies composed pure Haskell functions to a list of lines of strings from stdin or files, enabling text processing without having to remember an obscure DSL or awkward cli options. This tool can also help to encourage people to think functionally.
 
 hwk was originally written by Lukas Martinelli in 2016-2017:
 see the [original README file](README.md.orig).

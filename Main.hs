@@ -22,7 +22,7 @@ main = do
   userdir <- getXdgDirectory XdgConfig "hwk"
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-    runExpr userdir <$> modeOpt <*> cfgdirOpt userdir <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+    runExpr userdir <$> modeOpt <*> cfgdirOpt userdir <*> strArg "FUNCTION" <*> many (strArg "FILE...")
   where
     modeOpt :: Parser HwkMode
     modeOpt =
@@ -35,15 +35,14 @@ main = do
     cfgdirOpt dir =
       optional (normalise <$> strOptionWith 'c' "config-dir" "DIR" ("Override the config dir [default:" ++ dir ++ "]"))
 
-runExpr :: FilePath -> HwkMode -> Maybe FilePath -> String -> {-[FilePath] ->-} IO ()
-runExpr userdir mode mcfgdir stmt {-files-} = do
-  --mapM_ checkFileExists files
-  input <- getContents
+runExpr :: FilePath -> HwkMode -> Maybe FilePath -> String -> [FilePath] -> IO ()
+runExpr userdir mode mcfgdir stmt files = do
+  mapM_ checkFileExists files
   cfgdir <-
     case mcfgdir of
       Just dir -> do
         unlessM (doesDirectoryExist dir) $
-          error $ dir ++ ": directory not found"
+          error' $ dir ++ ": directory not found"
         return dir
       Nothing -> do
         let usercfg = userdir </> "Hwk.hs"
@@ -55,13 +54,15 @@ runExpr userdir mode mcfgdir stmt {-files-} = do
           copyFile (datadir </> "Hwk.hs") usercfg
           warn $ usercfg ++ " created"
         return userdir
-  r <- runInterpreter (runHint cfgdir input)
-  case r of
-    Left err -> putStrLn $ errorString err
-    Right () -> return ()
+  let inputs = if null files then ["-"] else files
+  forM_ inputs $ \ file ->
+    runInterpreter (runHint cfgdir file) >>=
+    either (putStrLn . errorString) return
   where
-    runHint :: FilePath -> String -> Interpreter ()
-    runHint cfgdir input = do
+    runHint :: FilePath -> FilePath -> Interpreter ()
+    runHint cfgdir file = do
+      -- could ignore this for eval or typecheck
+      input <- liftIO $ if file == "-" then getContents else readFile file
       set [searchPath := [cfgdir], languageExtensions := [TypeApplications]]
       loadModules ["Hwk"]
       let setHwkImports ms = setImports (L.nub (ms ++ ["Hwk"]))
@@ -86,10 +87,11 @@ runExpr userdir mode mcfgdir stmt {-files-} = do
           then init s
           else s
 
-    -- checkFileExists :: FilePath -> IO ()
-    -- checkFileExists file = do
-    --   unlessM (doesFileExist file) $
-    --     error' $ "file not found: " ++ file
+    checkFileExists :: FilePath -> IO ()
+    checkFileExists "-" = return ()
+    checkFileExists file = do
+      unlessM (doesFileExist file) $
+        error' $ "file not found: " ++ file
 
     errorString :: InterpreterError -> String
     errorString (WontCompile es) =
@@ -215,9 +217,17 @@ evalExpr stmt = do
         -- FIXME option to display type
         eval stmt >>= liftIO . putStrLn
 
-warn :: String -> IO ()
-warn = hPutStrLn stderr
-
 resultTypeOfApplied :: MonadInterpreter m => String -> String -> m String
 resultTypeOfApplied expr typ =
   L.dropPrefix (typ ++ " -> ") <$> typeOf (expr ++ " . (id  @" ++ typ ++ ")")
+
+warn :: String -> IO ()
+warn = hPutStrLn stderr
+
+-- from simple-cmd
+error' :: String -> a
+#if (defined(MIN_VERSION_base) && MIN_VERSION_base(4,9,0))
+error' = errorWithoutStackTrace
+#else
+error' = error
+#endif
