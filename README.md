@@ -132,6 +132,13 @@ and then run it with `stack exec hwk ...` using the same resolver.
 - You can also typecheck the function or an expression with `-t`/`--typecheck`,
   evaluate an expr with `-e`/`--eval`, or `-r`/`--run` an IO statement.
 
+Note the equivalences:
+- `hwk 'f . unlines'` == `hwk -a f`
+- `hwk 'map f'` == `hwk -l f`
+- `hwk -a 'f . lines'` == `hwk f`
+- `hwk -l 'f . words'` == `hwk -w f`
+- `hwk 'map (f . words)'` == `hwk -w f`
+
 ## Supported return types
 
 The following return values are supported:
