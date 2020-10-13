@@ -3,3 +3,4 @@
 - use Typeable/Data.Type.Equality?
 - render (a,b)
 - streaming: hwk | hwk
+- Shell.hs configuration/prelude

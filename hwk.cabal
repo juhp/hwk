@@ -30,6 +30,9 @@ executable hwk
   hs-source-dirs:      src
   autogen-modules:     Paths_hwk
   other-modules:       Paths_hwk
+                       Common
+                       Hwk.IO
+                       Hwk.Types
   build-depends:       base <5,
                        directory >= 1.2.3.0,
                        extra,

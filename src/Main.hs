@@ -14,11 +14,13 @@ import Language.Haskell.Interpreter
 import SimpleCmdArgs
 import System.Directory
 import System.FilePath
-import System.IO (hPutStrLn, stderr)
 
+import Common
+import Hwk.IO
+import Hwk.Types
 import Paths_hwk (getDataDir, version)
 
-data HwkMode = DefaultMode | LineMode | WordsMode | WholeMode | TypeMode | EvalMode | RunMode
+data HwkMode = DefaultMode | LineMode | WordsMode | WholeMode | TypeMode | EvalMode | RunMode | ShellMode
   deriving Eq
 
 main :: IO ()
@@ -35,7 +37,8 @@ main = do
       flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
       flagWith' TypeMode 't' "typecheck" "Print out the type of the given function" <|>
       flagWith' EvalMode 'e' "eval" "Evaluate a Haskell expression" <|>
-      flagWith DefaultMode RunMode 'r' "run" "Run Haskell IO"
+      flagWith' RunMode 'r' "run" "Run Haskell IO" <|>
+      flagWith DefaultMode ShellMode 's' "shell" "Haskell Shell"
 
     cfgdirOpt :: String -> Parser (Maybe FilePath)
     cfgdirOpt dir =
@@ -90,6 +93,7 @@ runExpr userdir mode mcfgdir stmt files = do
         TypeMode -> typeOfExpr stmt
         EvalMode -> evalExpr stmt
         RunMode -> execExpr stmt
+        ShellMode -> liftIO setNoBuffering >> shellSession
       where
         withInputFiles :: [FilePath] -> (String -> Interpreter ())
                        -> Interpreter ()
@@ -115,9 +119,6 @@ runExpr userdir mode mcfgdir stmt files = do
     errorString (WontCompile es) =
       unlines $ "ERROR: Won't compile:" : map errMsg es
     errorString e = show e
-
-cleanupType :: String -> String
-cleanupType = L.replace "FilePath" "String" . L.replace "[Char]" "String"
 
 -- fn $ lines input
 mapInputList :: String -> [String] -> Interpreter ()
@@ -231,16 +232,16 @@ applyToInput stmt input = do
       fn <- interpret stmt (as :: String -> [String])
       liftIO $ mapM_ putStrLn (fn input)
 
+resultTypeOfApplied :: MonadInterpreter m => String -> String -> m String
+resultTypeOfApplied expr typ =
+  L.dropPrefix (typ ++ " -> ") <$> typeOf (expr ++ " . (id  @" ++ typ ++ ")")
+
 typeOfExpr :: String -> Interpreter ()
 typeOfExpr stmt = do
-#if MIN_VERSION_hint(0,8,0)
   etypchk <- typeChecksWithDetails stmt
   case etypchk of
     Left err -> liftIO $ mapM_ (putStrLn . errMsg) err
     Right typ -> liftIO $ putStrLn (cleanupType typ)
-#else
-  typeOf stmt >>= liftIO . putStrLn . cleanupType
-#endif
 
 evalExpr :: String -> Interpreter ()
 evalExpr stmt = do
@@ -264,27 +265,6 @@ evalExpr stmt = do
         else
         -- FIXME option to display type
         eval stmt >>= liftIO . putStrLn
-
--- FIXME add --safe?
-execExpr :: String -> Interpreter ()
-execExpr stmt = do
-  typ <- typeOf stmt
-  case cleanupType typ of
-    "IO ()" -> runStmt stmt
-    "IO String" ->
-      runStmt $ stmt ++ ">>= putStrLn"
-    "IO [String]" ->
-      runStmt $ stmt ++ ">>= mapM_ putStrLn"
-    "IO [[String]]" ->
-      runStmt $ stmt ++ ">>= mapM_ (putStrLn . unwords)"
-    _ -> liftIO $ warn typ
-
-resultTypeOfApplied :: MonadInterpreter m => String -> String -> m String
-resultTypeOfApplied expr typ =
-  L.dropPrefix (typ ++ " -> ") <$> typeOf (expr ++ " . (id  @" ++ typ ++ ")")
-
-warn :: String -> IO ()
-warn = hPutStrLn stderr
 
 -- from simple-cmd
 error' :: String -> a
