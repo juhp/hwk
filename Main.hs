@@ -200,9 +200,8 @@ evalExpr stmt = do
       if " -> " `L.isInfixOf` typ
         then liftIO $ putStrLn typ
         else do
-        res <- eval stmt
         -- FIXME option to display type
-        liftIO $ putStrLn $ res ++ " :: " ++ typ
+        eval stmt >>= liftIO . putStrLn
 
 warn :: String -> IO ()
 warn = hPutStrLn stderr
