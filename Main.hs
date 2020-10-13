@@ -18,10 +18,11 @@ data HwkMode = DefaultMode | WholeMode | LineMode | TypeMode | EvalMode
   deriving Eq
 
 main :: IO ()
-main =
+main = do
+  userdir <- getXdgDirectory XdgConfig "hwk"
   simpleCmdArgs (Just version) "A Haskell awk/sed like tool"
     "Simple shell text processing with Haskell" $
-  runExpr <$> modeOpt <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
+    runExpr userdir <$> modeOpt <*> cfgdirOpt userdir <*> strArg "FUNCTION" {-<*> many (strArg "FILE...")-}
   where
     modeOpt :: Parser HwkMode
     modeOpt =
@@ -30,20 +31,31 @@ main =
       flagWith' WholeMode 'a' "all" "Apply function once to the whole input" <|>
       flagWith DefaultMode LineMode 'l' "line" "Apply function to each line"
 
-runExpr :: HwkMode -> String -> {-[FilePath] ->-} IO ()
-runExpr mode stmt {-files-} = do
+    cfgdirOpt :: String -> Parser (Maybe FilePath)
+    cfgdirOpt dir =
+      optional (normalise <$> strOptionWith 'c' "config-dir" "DIR" ("Override the config dir [default:" ++ dir ++ "]"))
+
+runExpr :: FilePath -> HwkMode -> Maybe FilePath -> String -> {-[FilePath] ->-} IO ()
+runExpr userdir mode mcfgdir stmt {-files-} = do
   --mapM_ checkFileExists files
   input <- getContents
-  userdir <- getXdgDirectory XdgConfig "hwk"
-  let usercfg = userdir </> "Hwk.hs"
-  datadir <- getDataDir
-  let versionCfg = usercfg ++ "-" ++ showVersion version
-  unlessM (doesFileExist versionCfg) $
-    copyFile (datadir </> "Hwk.hs") versionCfg
-  unlessM (doesFileExist usercfg) $ do
-    copyFile (datadir </> "Hwk.hs") usercfg
-    warn $ usercfg ++ " created"
-  r <- runInterpreter (runHint userdir input)
+  cfgdir <-
+    case mcfgdir of
+      Just dir -> do
+        unlessM (doesDirectoryExist dir) $
+          error $ dir ++ ": directory not found"
+        return dir
+      Nothing -> do
+        let usercfg = userdir </> "Hwk.hs"
+        datadir <- getDataDir
+        let versionCfg = usercfg ++ "-" ++ showVersion version
+        unlessM (doesFileExist versionCfg) $
+          copyFile (datadir </> "Hwk.hs") versionCfg
+        unlessM (doesFileExist usercfg) $ do
+          copyFile (datadir </> "Hwk.hs") usercfg
+          warn $ usercfg ++ " created"
+        return userdir
+  r <- runInterpreter (runHint cfgdir input)
   case r of
     Left err -> putStrLn $ errorString err
     Right () -> return ()
