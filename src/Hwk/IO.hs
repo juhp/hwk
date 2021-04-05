@@ -24,12 +24,13 @@ shellSession :: Interpreter ()
 shellSession = do
   liftIO $ putStr ">= "
   stmt <- liftIO getLine
-  if null stmt then shellSession
+  if null (words stmt) then shellSession
     else do
     etypchk <- typeChecksWithDetails stmt
     case etypchk of
       Left err -> do
         liftIO $ mapM_ (putStrLn . errMsg) err
+        runStmt stmt
         shellSession
       Right typ -> do
         liftIO $ putStrLn $ ":: " ++ cleanupType typ
