@@ -1,9 +1,5 @@
 # Miscellaneous examples
 
-## `echo $(cat)`
+## lines with 1-4 words
 
-`hwk unwords`
-
-or
-
-`hwk -a "unwords . lines"`
+`hwk -w "filter ((\i -> i<5 && i>0) . length)`
