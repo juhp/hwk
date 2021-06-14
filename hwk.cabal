@@ -12,7 +12,7 @@ license-file:        LICENSE
 author:              Lukas Martinelli
 maintainer:          Jens Petersen <juhpetersen@gmail.com>
 copyright:           2016-2017 Lukas Martinelli,
-                     2020 Jens Petersen
+                     2020-2021 Jens Petersen
 category:            Development
 build-type:          Simple
 data-files:          Hwk.hs
