@@ -1,5 +1,5 @@
 name:                hwk
-version:             0.5
+version:             0.6
 synopsis:            Commandline text processing with Haskell functions
 description:
             A commandline tool for text processing with Haskell functions,

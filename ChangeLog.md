@@ -1,5 +1,10 @@
 # Version history for hwk
 
+## 0.6 (2021-06-14)
+- add --words mode: applies function to list of words in each line
+- experimental shell mode
+- initial config fixes
+
 ## 0.5 (2020-10-13)
 - file arguments can now provide input
 - experimental --run mode to execute IO
