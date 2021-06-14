@@ -42,5 +42,5 @@ shellSession = do
             runStmt $ stmt ++ ">>= mapM_ putStrLn"
           "IO [[String]]" ->
             runStmt $ stmt ++ ">>= mapM_ (putStrLn . unwords)"
-          _ -> liftIO $ warn "don't know how to handle this type"
+          _ -> eval stmt >>= liftIO . putStrLn
         shellSession
