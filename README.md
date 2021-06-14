@@ -1,6 +1,6 @@
 # hwk ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 
-<img align="right" alt="hwk" src="hwk.png" />
+<img align="right" alt="[hawk image]" src="hwk.png" />
 
 **hwk** (pronounced "hawk") is a simple Haskell-based commandline text processing tool, somewhat similar to tools like *awk*, *grep*, *sed*.
 `hwk` applies composed pure Haskell functions to a list of lines of input, enabling text processing without having to remember an obscure DSL or awkward cli options. This tool can also help to encourage people to think functionally.
