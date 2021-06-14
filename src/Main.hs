@@ -56,11 +56,15 @@ runExpr userdir mode mcfgdir stmt files = do
       Nothing -> do
         let usercfg = userdir </> "Hwk.hs"
         datadir <- getDataDir
+        let datafile = datadir </> "Hwk.hs"
+        unlessM (doesFileExist datafile) $
+          error' $ "default config file does not exist: " ++ datafile
+        createDirectoryIfMissing True userdir
         let versionCfg = usercfg ++ "-" ++ showVersion version
         unlessM (doesFileExist versionCfg) $
-          copyFile (datadir </> "Hwk.hs") versionCfg
+          copyFile datafile versionCfg
         unlessM (doesFileExist usercfg) $ do
-          copyFile (datadir </> "Hwk.hs") usercfg
+          copyFile datafile usercfg
           warn $ usercfg ++ " created"
         return userdir
   runInterpreter (runHint cfgdir) >>=
